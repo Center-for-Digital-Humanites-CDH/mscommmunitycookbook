@@ -1,182 +1,196 @@
+.page {
+  width: 100%;
+}
+
+/* ── Hero ── */
 .hero {
+  width: 100%;
+  padding: 5rem 2rem 6rem;
   text-align: center;
-  padding: 3rem 1rem 4rem;
-  max-width: 900px;
+  background:
+    radial-gradient(ellipse at top, rgba(200, 118, 61, 0.06) 0%, transparent 65%),
+    var(--background);
+}
+
+.heroInner {
+  max-width: 820px;
   margin: 0 auto;
   position: relative;
 }
 
-.hero::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100px;
+.heroAccent {
+  width: 64px;
   height: 4px;
   background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
   border-radius: 2px;
+  margin: 0 auto 2.5rem;
 }
 
 .hero h1 {
   font-family: 'Playfair Display', serif;
-  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-size: clamp(2.4rem, 5.5vw, 3.8rem);
   font-weight: 600;
   color: var(--text-dark);
-  line-height: 1.1;
-  margin-bottom: 2rem;
-  margin-top: 1rem;
+  line-height: 1.15;
+  margin-bottom: 1.75rem;
+  letter-spacing: -0.5px;
 }
 
 .heroSub {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: var(--text-muted);
-  line-height: 1.7;
-  max-width: 700px;
+  line-height: 1.75;
+  max-width: 640px;
   margin: 0 auto;
   font-weight: 400;
   border-bottom: none !important;
 }
 
+/* ── Tiles ── */
 .tilesSection {
-  padding: 2rem 0 4rem;
-  position: relative;
-}
-
-.tilesSection::before {
-  content: '';
-  position: absolute;
-  top: -3rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 300px;
-  height: 2px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(200, 118, 61, 0.2),
-    var(--primary-color),
-    rgba(200, 118, 61, 0.2),
-    transparent
-  );
-  border-radius: 1px;
+  padding: 0 2rem 5rem;
 }
 
 .tilesGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-  max-width: 1300px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 1200px;
   margin: 0 auto;
+}
+
+/* Make last tile (if 7 total) span to center */
+.tilesGrid > *:last-child:nth-child(3n + 1) {
+  grid-column: 2;
 }
 
 .tile {
   position: relative;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 260px;
+  display: flex;
+  align-items: flex-end;
   text-decoration: none;
   border-bottom: none !important;
-  color: inherit;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  min-height: 220px;
-  overflow: hidden;
+  color: white;
   background-size: cover;
-  background-position: center;
   background-repeat: no-repeat;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 }
 
 .tile:hover {
-  transform: translateY(-8px);
-  border-color: var(--primary-color);
-  box-shadow:
-    0 20px 40px rgba(0, 0, 0, 0.15),
-    0 0 0 2px rgba(200, 118, 61, 0.4),
-    0 0 30px rgba(200, 118, 61, 0.2);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
 }
 
 .tileOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.7) 100%);
-  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.35) 55%,
+    rgba(0, 0, 0, 0.1) 100%
+  );
+  transition: background 0.35s ease;
+}
+
+.tile:hover .tileOverlay {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(200, 118, 61, 0.25) 55%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
 }
 
 .tileContent {
   position: relative;
   z-index: 2;
-  padding: 2.5rem;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  padding: 1.75rem 1.75rem 1.75rem;
+  width: 100%;
 }
 
 .tileContent h3 {
   font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  color: var(--text-dark);
-  margin: 0 0 1rem;
+  font-size: 1.35rem;
   font-weight: 600;
+  margin: 0 0 0.4rem;
+  line-height: 1.2;
+  color: #fff;
 }
 
 .tileContent p {
-  font-size: 1rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-  flex-grow: 1;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: 0.3px;
   border-bottom: none !important;
 }
 
+/* ── Welcome ── */
 .welcome {
-  text-align: center;
-  padding: 2rem 1rem 4rem;
-  max-width: 900px;
-  margin: 0 auto;
-  position: relative;
+  padding: 4rem 2rem 3rem;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(200, 118, 61, 0.03) 0%, transparent 60%);
 }
 
-.welcome::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 300px;
-  height: 2px;
-  background: linear-gradient(90deg,
-    transparent,
-    rgba(200, 118, 61, 0.2),
-    var(--primary-color),
-    rgba(200, 118, 61, 0.2),
-    transparent
-  );
-  border-radius: 1px;
-}
-
-.welcome p {
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  line-height: 1.7;
+.welcomeInner {
   max-width: 800px;
   margin: 0 auto;
+  text-align: center;
+}
+
+.welcomeInner p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.85;
   font-weight: 400;
   border-bottom: none !important;
 }
 
-.newsletterWrap {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 0 1rem;
+.welcomeInner a {
+  color: var(--primary-color);
+  font-weight: 500;
+  border-bottom: 1px solid rgba(200, 118, 61, 0.3) !important;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .hero { padding: 2rem 1rem 3rem; }
-  .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 1.5rem; }
+.welcomeInner a:hover {
+  color: var(--primary-dark);
+  border-bottom-color: var(--primary-color) !important;
+}
+
+/* ── Newsletter ── */
+.newsletterWrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .tilesGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tilesGrid > *:last-child:nth-child(3n + 1) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero { padding: 3.5rem 1.5rem 4rem; }
+  .hero h1 { font-size: clamp(2rem, 7vw, 2.8rem); }
   .heroSub { font-size: 1rem; }
-  .tilesGrid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .tilesSection { padding: 0 1rem 3rem; }
+  .tilesGrid { grid-template-columns: 1fr; gap: 1rem; }
+  .tilesGrid > *:last-child:nth-child(3n + 1) { grid-column: auto; }
   .tile { min-height: 200px; }
-  .tileContent { padding: 2rem; }
-  .tileContent h3 { font-size: 1.3rem; }
-  .welcome p { font-size: 1rem; }
+  .tileContent { padding: 1.25rem 1.5rem; }
+  .welcome { padding: 3rem 1.5rem 2.5rem; }
+  .newsletterWrap { padding: 0 1rem; }
 }

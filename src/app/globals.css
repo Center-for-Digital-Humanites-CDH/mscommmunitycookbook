@@ -93,8 +93,20 @@ main a:focus {
   outline: none;
 }
 
+main {
+  flex: 1;
+  width: 100%;
+}
+
+/* Shared inner-page container */
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
 @media (max-width: 768px) {
-  html {
-    font-size: 15px;
-  }
+  html { font-size: 15px; }
+  .page-container { padding: 0 1rem; }
 }
