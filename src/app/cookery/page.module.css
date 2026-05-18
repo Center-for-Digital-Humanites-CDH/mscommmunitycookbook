@@ -1,0 +1,77 @@
+.wrapper {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 5rem;
+}
+
+.prose {
+  /* Clear floated figures at the end */
+  overflow: hidden;
+}
+
+.prose p {
+  font-size: 1.06rem;
+  line-height: 1.88;
+  color: var(--text-dark);
+  margin-bottom: 1.6rem;
+}
+
+.prose em {
+  font-style: italic;
+  color: var(--primary-color);
+}
+
+/* ── Cookbook cover figures ── */
+.figure {
+  margin-bottom: 1rem;
+}
+
+.figureLeft {
+  float: left;
+  margin: 0 1.5rem 1rem 0;
+  max-width: 180px;
+  shape-outside: margin-box;
+}
+
+.figureRight {
+  float: right;
+  margin: 0 0 1rem 1.5rem;
+  max-width: 180px;
+  shape-outside: margin-box;
+}
+
+.coverImg {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: block;
+}
+
+.figure figcaption {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  color: var(--text-dark);
+  text-align: center;
+  margin-top: 0.5rem;
+  line-height: 1.5;
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .wrapper { padding: 2.5rem 1.1rem 3.5rem; }
+
+  .figureLeft,
+  .figureRight {
+    float: none;
+    max-width: 250px;
+    margin: 0 auto 1.5rem;
+    display: block;
+  }
+
+  .coverImg { height: 200px; }
+  .prose p { font-size: 0.98rem; }
+}

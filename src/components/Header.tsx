@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useLayoutEffect, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import styles from './Header.module.css';
 
 const navLinks = [
@@ -13,45 +13,26 @@ const navLinks = [
   { href: '/cookery', label: 'Cookery', key: 'cookery' },
   { href: '/proof-pudding', label: 'Proof of the Pudding', key: 'proof' },
   { href: '/culinary-tales', label: 'Culinary Tales', key: 'tales' },
-  { href: '/tasted-tested', label: 'Tasted and Tested', key: 'tested' },
+  { href: '/tasted-tested', label: 'Tasted & Tested', key: 'tested' },
 ];
 
 export default function Header() {
   const pathname = usePathname();
-  const navRef = useRef<HTMLUListElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const firstMount = useRef(true);
+  const [scrolled, setScrolled] = useState(false);
 
   function getActiveHref() {
     if (pathname.startsWith('/culinary-tales')) return '/culinary-tales';
     return pathname;
   }
 
-  function moveLine(el: HTMLElement, instant = false) {
-    if (!navRef.current || !lineRef.current) return;
-    const navRect = navRef.current.getBoundingClientRect();
-    const rect = el.getBoundingClientRect();
-    if (instant) lineRef.current.style.transition = 'none';
-    lineRef.current.style.left = rect.left - navRect.left + 'px';
-    lineRef.current.style.width = rect.width + 'px';
-    lineRef.current.style.opacity = '1';
-    if (instant) {
-      void lineRef.current.offsetHeight;
-      lineRef.current.style.transition = '';
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 8);
     }
-  }
-
-  useLayoutEffect(() => {
-    if (!navRef.current) return;
-    const active = getActiveHref();
-    navRef.current.querySelectorAll<HTMLAnchorElement>('a[data-href]').forEach((a) => {
-      if (a.dataset.href === active) {
-        moveLine(a, firstMount.current);
-        firstMount.current = false;
-      }
-    });
-  });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
 
@@ -64,33 +45,18 @@ export default function Header() {
 
   return (
     <>
-      <header className={styles.header}>
+      <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.navContainer}>
 
-          {/* Desktop links */}
-          <ul
-            className={styles.navMenu}
-            ref={navRef}
-            onMouseLeave={() => {
-              const active = getActiveHref();
-              navRef.current
-                ?.querySelectorAll<HTMLAnchorElement>('a[data-href]')
-                .forEach((a) => { if (a.dataset.href === active) moveLine(a); });
-            }}
-          >
-            {/* Sliding underline indicator */}
-            <div className={styles.navLine} ref={lineRef} />
-
-            {navLinks.map((link) => (
-              <li key={link.key}>
+          {/* Desktop tab bar */}
+          <nav className={styles.tabBar}>
+            {navLinks.map((link) => {
+              const isActive = activeHref === link.href;
+              return (
                 <Link
+                  key={link.key}
                   href={link.href}
-                  data-href={link.href}
-                  className={[
-                    link.icon ? styles.homeLink : '',
-                    activeHref === link.href ? styles.active : '',
-                  ].filter(Boolean).join(' ')}
-                  onMouseEnter={(e) => moveLine(e.currentTarget)}
+                  className={`${styles.tab} ${isActive ? styles.tabActive : ''}`}
                 >
                   {link.icon ? (
                     <svg className={styles.homeIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -99,9 +65,9 @@ export default function Header() {
                     </svg>
                   ) : link.label}
                 </Link>
-              </li>
-            ))}
-          </ul>
+              );
+            })}
+          </nav>
 
           {/* Hamburger — mobile only */}
           <button

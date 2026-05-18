@@ -1,102 +1,111 @@
-/* ── Sticky header bar ── */
+/* ── Sticky header ── */
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(253, 251, 248, 0.9);
+  background: rgba(253, 251, 248, 0.88);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border-bottom: 1px solid rgba(200, 118, 61, 0.1);
+  /* The bottom border is the "desk" the recipe cards sit on */
+  border-bottom: 2px solid rgba(200, 118, 61, 0.18);
+  transition: box-shadow 0.3s ease, background 0.3s ease;
+}
+
+/* Stronger presence once the user scrolls */
+.scrolled {
+  background: rgba(253, 251, 248, 0.97);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(200, 118, 61, 0.12);
 }
 
 .navContainer {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 2rem;
+  padding: 0 1.5rem;
   display: flex;
   justify-content: center;
-  align-items: stretch;
+  align-items: flex-end; /* tabs sit on the bottom border */
 }
 
-/* ── Desktop nav ── */
-.navMenu {
+/* ── Tab bar ── */
+.tabBar {
   display: flex;
-  list-style: none;
-  align-items: stretch;
-  position: relative;
-  /* No pill, no background — pure links + underline */
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  gap: 0;
+  align-items: flex-end;
+  gap: 3px;
+  padding-top: 0.65rem;
 }
 
-.navMenu li {
-  display: flex;
-  align-items: stretch;
-}
-
-.navMenu a {
+/* ── Individual tab ── */
+.tab {
   display: flex;
   align-items: center;
-  padding: 1.05rem 1rem;
-  color: rgba(40, 28, 15, 0.5);
+  justify-content: center;
+  padding: 0.55rem 1rem 0.65rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.845rem;
   font-weight: 500;
-  font-size: 0.875rem;
+  color: rgba(50, 35, 18, 0.52);
   text-decoration: none;
   border-bottom: none !important;
   white-space: nowrap;
-  letter-spacing: 0.01em;
-  transition: color 0.18s ease;
-}
-
-.navMenu a:hover {
-  color: var(--text-dark);
-}
-
-.navMenu a.active {
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* ── Sliding underline ── */
-.navLine {
-  position: absolute;
-  bottom: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-  border-radius: 2px 2px 0 0;
-  /* 200ms — readable, not sluggish */
+  /* Recipe card tab shape — rounded only on top corners */
+  border-radius: 9px 9px 0 0;
+  border: 1.5px solid transparent;
+  border-bottom: none;
+  /* Pulls the tab down so it covers the header's border-bottom when active */
+  margin-bottom: -2px;
+  position: relative;
   transition:
-    left 200ms cubic-bezier(0.4, 0, 0.2, 1),
-    width 200ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 150ms ease;
-  opacity: 0;
-  pointer-events: none;
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  letter-spacing: 0.008em;
 }
 
-/* ── Home icon ── */
-.homeLink {
-  padding: 1.05rem 0.75rem !important;
+.tab:hover {
+  color: var(--text-dark);
+  background: rgba(200, 118, 61, 0.05);
+  border-color: rgba(200, 118, 61, 0.14);
+  transform: translateY(-2px);
 }
 
+/* ── Active tab — the raised, selected card ── */
+.tabActive {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+  background: white;
+  border-color: rgba(200, 118, 61, 0.28) !important;
+  /* Bottom: white so it blends into the page, covering the desk border */
+  border-bottom-color: white !important;
+  transform: translateY(-3px);
+  box-shadow:
+    0 -3px 12px rgba(200, 118, 61, 0.07),
+    0 -1px 4px rgba(0, 0, 0, 0.04),
+    /* tiny warm top accent line */
+    inset 0 2px 0 rgba(200, 118, 61, 0.35);
+}
+
+.tabActive:hover {
+  transform: translateY(-3px);
+}
+
+/* ── Home icon tab ── */
 .homeIcon {
-  width: 17px;
-  height: 17px;
-  color: rgba(40, 28, 15, 0.45);
+  width: 16px;
+  height: 16px;
+  color: inherit;
   transition: color 0.18s ease, transform 0.2s ease;
 }
 
-.homeLink:hover .homeIcon { color: var(--text-dark); transform: scale(1.08); }
-.homeLink.active .homeIcon { color: var(--primary-color); }
+.tab:hover .homeIcon { transform: scale(1.1); }
 
-/* ── Hamburger — desktop hidden ── */
+/* ── Hamburger — hidden desktop ── */
 .hamburger {
   display: none;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(200, 118, 61, 0.2);
+  border: 1.5px solid rgba(200, 118, 61, 0.2);
   border-radius: 9px;
   background: transparent;
   align-items: center;
@@ -105,6 +114,7 @@
   flex-direction: column;
   cursor: pointer;
   align-self: center;
+  margin-bottom: 0.5rem;
   transition: background 0.18s ease, border-color 0.18s ease, transform 0.16s ease;
 }
 
@@ -224,18 +234,19 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 1200px) {
-  .navMenu a { font-size: 0.82rem; padding: 1.05rem 0.85rem; }
+@media (max-width: 1280px) {
+  .tab { font-size: 0.8rem; padding: 0.52rem 0.82rem 0.62rem; }
 }
 
-@media (max-width: 1024px) {
-  .navMenu a { font-size: 0.78rem; padding: 1.05rem 0.7rem; }
+@media (max-width: 1080px) {
+  .tab { font-size: 0.75rem; padding: 0.5rem 0.68rem 0.6rem; }
+  .tabBar { gap: 2px; }
 }
 
 @media (max-width: 860px) {
-  .navMenu { display: none; }
+  .tabBar { display: none; }
   .hamburger { display: inline-flex; }
-  .navContainer { justify-content: flex-end; padding-top: 0.55rem; padding-bottom: 0.55rem; }
+  .navContainer { justify-content: flex-end; padding-top: 0.45rem; padding-bottom: 0.45rem; }
 }
 
 @media (max-width: 480px) {
