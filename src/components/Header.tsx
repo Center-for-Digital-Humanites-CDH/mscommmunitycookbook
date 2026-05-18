@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import styles from './Header.module.css';
 
 const navLinks = [
@@ -19,29 +19,37 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname();
   const navRef = useRef<HTMLUListElement>(null);
-  const bgRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const firstMount = useRef(true);
 
   function getActiveHref() {
     if (pathname.startsWith('/culinary-tales')) return '/culinary-tales';
     return pathname;
   }
 
-  function moveBg(el: HTMLElement) {
-    if (!navRef.current || !bgRef.current) return;
-    const menuRect = navRef.current.getBoundingClientRect();
+  function moveLine(el: HTMLElement, instant = false) {
+    if (!navRef.current || !lineRef.current) return;
+    const navRect = navRef.current.getBoundingClientRect();
     const rect = el.getBoundingClientRect();
-    bgRef.current.style.left = rect.left - menuRect.left + 'px';
-    bgRef.current.style.width = rect.width + 'px';
-    bgRef.current.style.opacity = '1';
+    if (instant) lineRef.current.style.transition = 'none';
+    lineRef.current.style.left = rect.left - navRect.left + 'px';
+    lineRef.current.style.width = rect.width + 'px';
+    lineRef.current.style.opacity = '1';
+    if (instant) {
+      void lineRef.current.offsetHeight;
+      lineRef.current.style.transition = '';
+    }
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!navRef.current) return;
-    const activeHref = getActiveHref();
-    const links = navRef.current.querySelectorAll<HTMLAnchorElement>('a[data-href]');
-    links.forEach((a) => {
-      if (a.dataset.href === activeHref) moveBg(a);
+    const active = getActiveHref();
+    navRef.current.querySelectorAll<HTMLAnchorElement>('a[data-href]').forEach((a) => {
+      if (a.dataset.href === active) {
+        moveLine(a, firstMount.current);
+        firstMount.current = false;
+      }
     });
   });
 
@@ -59,19 +67,20 @@ export default function Header() {
       <header className={styles.header}>
         <div className={styles.navContainer}>
 
-          {/* Desktop pill nav — centered */}
+          {/* Desktop links */}
           <ul
             className={styles.navMenu}
             ref={navRef}
             onMouseLeave={() => {
-              const activeHref = getActiveHref();
-              const links = navRef.current?.querySelectorAll<HTMLAnchorElement>('a[data-href]');
-              links?.forEach((a) => {
-                if (a.dataset.href === activeHref) moveBg(a);
-              });
+              const active = getActiveHref();
+              navRef.current
+                ?.querySelectorAll<HTMLAnchorElement>('a[data-href]')
+                .forEach((a) => { if (a.dataset.href === active) moveLine(a); });
             }}
           >
-            <div className={styles.navBackground} ref={bgRef} />
+            {/* Sliding underline indicator */}
+            <div className={styles.navLine} ref={lineRef} />
+
             {navLinks.map((link) => (
               <li key={link.key}>
                 <Link
@@ -80,8 +89,8 @@ export default function Header() {
                   className={[
                     link.icon ? styles.homeLink : '',
                     activeHref === link.href ? styles.active : '',
-                  ].join(' ')}
-                  onMouseEnter={(e) => moveBg(e.currentTarget)}
+                  ].filter(Boolean).join(' ')}
+                  onMouseEnter={(e) => moveLine(e.currentTarget)}
                 >
                   {link.icon ? (
                     <svg className={styles.homeIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>

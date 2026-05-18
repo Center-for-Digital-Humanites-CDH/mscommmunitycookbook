@@ -1,13 +1,12 @@
+/* ── Sticky header bar ── */
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(250, 250, 250, 0.85);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border-bottom: 1px solid rgba(200, 118, 61, 0.12);
-  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
-  padding: 1rem 0;
+  background: rgba(253, 251, 248, 0.9);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid rgba(200, 118, 61, 0.1);
 }
 
 .navContainer {
@@ -16,128 +15,112 @@
   padding: 0 2rem;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
 }
 
-/* ── Desktop pill nav ── */
+/* ── Desktop nav ── */
 .navMenu {
   display: flex;
   list-style: none;
-  gap: 0.15rem;
-  align-items: center;
+  align-items: stretch;
   position: relative;
-  padding: 0.4rem;
-  border-radius: 40px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.25) 50%,
-    rgba(255, 255, 255, 0.45) 100%
-  );
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.03);
+  /* No pill, no background — pure links + underline */
+  background: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  gap: 0;
 }
 
 .navMenu li {
-  position: relative;
-  z-index: 1;
+  display: flex;
+  align-items: stretch;
 }
 
 .navMenu a {
-  color: var(--text-dark);
-  text-decoration: none;
-  border-bottom: none !important;
-  font-weight: 500;
-  font-size: 0.88rem;
-  padding: 0.55rem 0.95rem;
   display: flex;
   align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
+  padding: 1.05rem 1rem;
+  color: rgba(40, 28, 15, 0.5);
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+  border-bottom: none !important;
   white-space: nowrap;
-  border-radius: 25px;
+  letter-spacing: 0.01em;
+  transition: color 0.18s ease;
 }
 
-.navMenu a:hover,
+.navMenu a:hover {
+  color: var(--text-dark);
+}
+
 .navMenu a.active {
-  color: var(--primary-dark);
+  color: var(--primary-color);
   font-weight: 600;
 }
 
-/* Sliding active indicator */
-.navBackground {
+/* ── Sliding underline ── */
+.navLine {
   position: absolute;
-  top: 0.4rem;
-  bottom: 0.4rem;
-  background: linear-gradient(
-    135deg,
-    rgba(200, 118, 61, 0.2) 0%,
-    rgba(200, 118, 61, 0.32) 50%,
-    rgba(200, 118, 61, 0.2) 100%
-  );
-  border: 1px solid rgba(200, 118, 61, 0.38);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 4px 12px rgba(200, 118, 61, 0.15);
-  border-radius: 30px;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  border-radius: 2px 2px 0 0;
+  /* 200ms — readable, not sluggish */
   transition:
-    left 260ms cubic-bezier(0.4, 0, 0.2, 1),
-    width 260ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 180ms ease;
+    left 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    width 200ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 150ms ease;
   opacity: 0;
-  z-index: 0;
   pointer-events: none;
 }
 
+/* ── Home icon ── */
 .homeLink {
-  padding: 0.4rem 0.65rem !important;
+  padding: 1.05rem 0.75rem !important;
 }
 
 .homeIcon {
-  width: 18px;
-  height: 18px;
-  color: var(--text-dark);
-  transition: color 0.2s ease, transform 0.2s ease;
+  width: 17px;
+  height: 17px;
+  color: rgba(40, 28, 15, 0.45);
+  transition: color 0.18s ease, transform 0.2s ease;
 }
 
-.homeLink:hover .homeIcon,
-.homeLink.active .homeIcon {
-  color: var(--primary-dark);
-  transform: scale(1.1);
-}
+.homeLink:hover .homeIcon { color: var(--text-dark); transform: scale(1.08); }
+.homeLink.active .homeIcon { color: var(--primary-color); }
 
-/* ── Hamburger — hidden on desktop ── */
+/* ── Hamburger — desktop hidden ── */
 .hamburger {
   display: none;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border: 1px solid rgba(200, 118, 61, 0.2);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  border-radius: 9px;
+  background: transparent;
   align-items: center;
   justify-content: center;
   gap: 5px;
   flex-direction: column;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  align-self: center;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.16s ease;
 }
 
 .hamburger:hover {
-  background: rgba(200, 118, 61, 0.06);
-  border-color: rgba(200, 118, 61, 0.35);
+  background: rgba(200, 118, 61, 0.05);
+  border-color: rgba(200, 118, 61, 0.38);
+  transform: scale(1.05);
 }
+
+.hamburger:active { transform: scale(0.94); }
 
 .bar {
   display: block;
-  width: 18px;
-  height: 2px;
-  background: var(--text-dark);
+  width: 17px;
+  height: 1.8px;
+  background: rgba(40, 28, 15, 0.65);
   border-radius: 2px;
 }
 
@@ -145,14 +128,16 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(10, 5, 0, 0.35);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   z-index: 90;
-  animation: fadeIn 200ms ease;
+  animation: overlayIn 180ms ease;
 }
 
-@keyframes fadeIn {
+@keyframes overlayIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 /* ── Mobile drawer ── */
@@ -163,17 +148,15 @@
   height: 100dvh;
   width: min(85vw, 300px);
   background: var(--surface);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.12);
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.12);
   transform: translateX(100%);
-  transition: transform 260ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
   display: flex;
   flex-direction: column;
 }
 
-.drawerOpen {
-  transform: translateX(0);
-}
+.drawerOpen { transform: translateX(0); }
 
 .drawerHeader {
   display: flex;
@@ -191,8 +174,8 @@
 }
 
 .drawerClose {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -200,12 +183,12 @@
   place-items: center;
   position: relative;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.18s ease;
 }
 
 .drawerClose:hover { background: rgba(200, 118, 61, 0.06); }
 .drawerClose .bar:first-child { transform: rotate(45deg); position: absolute; }
-.drawerClose .bar:last-child { transform: rotate(-45deg); position: absolute; }
+.drawerClose .bar:last-child  { transform: rotate(-45deg); position: absolute; }
 
 .drawerNav ul {
   list-style: none;
@@ -228,34 +211,33 @@
 }
 
 .drawerNav a:hover {
-  background: rgba(200, 118, 61, 0.06);
+  background: rgba(200, 118, 61, 0.05);
   color: var(--primary-dark);
 }
 
 .drawerActive {
-  background: rgba(200, 118, 61, 0.1) !important;
-  color: var(--primary-dark) !important;
+  background: rgba(200, 118, 61, 0.09) !important;
+  color: var(--primary-color) !important;
   font-weight: 600 !important;
-  border-left: 3px solid var(--primary-color) !important;
-  padding-left: calc(1rem - 3px) !important;
+  border-left: 2px solid var(--primary-color) !important;
+  padding-left: calc(1rem - 2px) !important;
 }
 
-/* ── Responsive breakpoints ── */
+/* ── Responsive ── */
 @media (max-width: 1200px) {
-  .navMenu a { font-size: 0.82rem; padding: 0.5rem 0.8rem; }
+  .navMenu a { font-size: 0.82rem; padding: 1.05rem 0.85rem; }
 }
 
 @media (max-width: 1024px) {
-  .navMenu a { font-size: 0.78rem; padding: 0.45rem 0.65rem; }
+  .navMenu a { font-size: 0.78rem; padding: 1.05rem 0.7rem; }
 }
 
 @media (max-width: 860px) {
   .navMenu { display: none; }
   .hamburger { display: inline-flex; }
-  .navContainer { justify-content: flex-end; }
+  .navContainer { justify-content: flex-end; padding-top: 0.55rem; padding-bottom: 0.55rem; }
 }
 
 @media (max-width: 480px) {
-  .header { padding: 0.75rem 0; }
   .navContainer { padding: 0 1rem; }
 }
