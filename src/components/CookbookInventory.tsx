@@ -148,7 +148,7 @@ export default function CookbookInventory({ cookbooks }: Props) {
       {/* Search + Filters */}
       <div className={styles.controls}>
         <div className={styles.searchWrap}>
-          <span className={styles.searchIcon}>🔎</span>
+          <span className={styles.searchIcon}></span>
           <input
             type="text"
             value={search}
@@ -189,7 +189,7 @@ export default function CookbookInventory({ cookbooks }: Props) {
 
           <select value={decade} onChange={handleFilterChange(setDecade)} className={decade ? styles.active : ''}>
             <option value="">All Decades</option>
-            {['1890s','1900s','1910s','1920s','1930s','1940s','1950s','1960s'].map((d) => (
+            {['1890s', '1900s', '1910s', '1920s', '1930s', '1940s', '1950s', '1960s'].map((d) => (
               <option key={d} value={d}>{d}</option>
             ))}
           </select>
