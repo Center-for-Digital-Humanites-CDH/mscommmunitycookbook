@@ -1,0 +1,205 @@
+.root {
+  border: 1px solid rgba(200, 118, 61, 0.15);
+  border-radius: 16px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: white;
+}
+
+.rootOpen {
+  border-color: rgba(200, 118, 61, 0.3);
+  box-shadow: 0 4px 20px rgba(200, 118, 61, 0.08);
+}
+
+/* Toggle button */
+.trigger {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.5rem;
+  background: linear-gradient(135deg, rgba(200, 118, 61, 0.04) 0%, rgba(255, 255, 255, 0.9) 100%);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.2s ease;
+}
+
+.trigger:hover {
+  background: linear-gradient(135deg, rgba(200, 118, 61, 0.07) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+
+.triggerText {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.35;
+}
+
+.icon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+  display: flex;
+  align-items: center;
+}
+
+.iconOpen {
+  transform: rotate(180deg);
+}
+
+/* Collapsible body */
+.body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.inner {
+  padding: 0 1.75rem 1.75rem;
+  border-top: 1px solid rgba(200, 118, 61, 0.1);
+}
+
+/* Essay content styles — scoped inside the essay body */
+.inner p {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text-dark);
+  margin-bottom: 1.4rem;
+  font-weight: 400;
+}
+
+.inner h4 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 1.75rem 0 0.75rem;
+}
+
+.inner h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 2rem 0 0.85rem;
+}
+
+.inner em { font-style: italic; }
+
+.inner hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* Blockquote / professor-voice */
+.inner blockquote {
+  border-left: 3px solid var(--primary-color);
+  background: rgba(200, 118, 61, 0.04);
+  border-radius: 0 10px 10px 0;
+  padding: 1.1rem 1.4rem;
+  margin: 1.5rem 0;
+  color: var(--text-dark);
+  font-style: italic;
+}
+
+.inner blockquote p {
+  margin-bottom: 1rem;
+}
+
+.inner blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+/* Chart images */
+.inner figure {
+  margin: 1.75rem 0;
+}
+
+.inner figure img {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  display: block;
+}
+
+.inner figure figcaption {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  margin-top: 0.6rem;
+}
+
+/* Footnote superscripts */
+.inner sup a {
+  font-size: 0.72em;
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: none !important;
+  vertical-align: super;
+}
+
+/* Footnotes section */
+.inner .footnotes {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.inner .footnotes h4 {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  margin-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inner .footnotes ol {
+  padding-left: 1.25rem;
+}
+
+.inner .footnotes li {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.inner .footnotes li p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+.inner .footnotes a {
+  color: var(--primary-color);
+  font-size: 0.8rem;
+}
+
+/* Note block */
+.inner .note {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 640px) {
+  .trigger { padding: 1rem 1.1rem; }
+  .triggerText { font-size: 0.92rem; }
+  .inner { padding: 0 1.1rem 1.25rem; }
+  .inner p { font-size: 0.97rem; }
+}
