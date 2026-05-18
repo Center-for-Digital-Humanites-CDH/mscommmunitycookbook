@@ -1,0 +1,182 @@
+.hero {
+  text-align: center;
+  padding: 3rem 1rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  border-radius: 2px;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 600;
+  color: var(--text-dark);
+  line-height: 1.1;
+  margin-bottom: 2rem;
+  margin-top: 1rem;
+}
+
+.heroSub {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto;
+  font-weight: 400;
+  border-bottom: none !important;
+}
+
+.tilesSection {
+  padding: 2rem 0 4rem;
+  position: relative;
+}
+
+.tilesSection::before {
+  content: '';
+  position: absolute;
+  top: -3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(200, 118, 61, 0.2),
+    var(--primary-color),
+    rgba(200, 118, 61, 0.2),
+    transparent
+  );
+  border-radius: 1px;
+}
+
+.tilesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.tile {
+  position: relative;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  text-decoration: none;
+  border-bottom: none !important;
+  color: inherit;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.tile:hover {
+  transform: translateY(-8px);
+  border-color: var(--primary-color);
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 0 0 2px rgba(200, 118, 61, 0.4),
+    0 0 30px rgba(200, 118, 61, 0.2);
+}
+
+.tileOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.7) 100%);
+  z-index: 1;
+}
+
+.tileContent {
+  position: relative;
+  z-index: 2;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tileContent h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--text-dark);
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.tileContent p {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  flex-grow: 1;
+  border-bottom: none !important;
+}
+
+.welcome {
+  text-align: center;
+  padding: 2rem 1rem 4rem;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.welcome::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(200, 118, 61, 0.2),
+    var(--primary-color),
+    rgba(200, 118, 61, 0.2),
+    transparent
+  );
+  border-radius: 1px;
+}
+
+.welcome p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 800px;
+  margin: 0 auto;
+  font-weight: 400;
+  border-bottom: none !important;
+}
+
+.newsletterWrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .hero { padding: 2rem 1rem 3rem; }
+  .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 1.5rem; }
+  .heroSub { font-size: 1rem; }
+  .tilesGrid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .tile { min-height: 200px; }
+  .tileContent { padding: 2rem; }
+  .tileContent h3 { font-size: 1.3rem; }
+  .welcome p { font-size: 1rem; }
+}
