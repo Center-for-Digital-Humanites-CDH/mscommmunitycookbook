@@ -14,11 +14,23 @@ export default function ProofPuddingPage() {
       <PageHero
         title="Proof of the Pudding"
         backgroundImage="/images/proof-bg.jpeg"
-        backgroundPosition="center 10%"
+        backgroundPosition="center 30%"
       />
 
       <div className={styles.wrapper}>
         <div className={styles.prose}>
+
+          {/* Gulfport cookbook — floats right on desktop */}
+          <figure className={`${styles.figure} ${styles.figureRight}`}>
+            <Image
+              src="/images/cookbook-whats-cookin-gulfport.jpg"
+              alt="What's Cookin' in Gulfport cookbook cover"
+              width={200}
+              height={260}
+              className={styles.coverImg}
+            />
+            <figcaption>What&apos;s Cookin&apos; in Gulfport (Gulfport, Miss.)</figcaption>
+          </figure>
 
           <p>
             When I tell people I am studying community cookbooks, they invariably are excited. I
@@ -52,18 +64,6 @@ export default function ProofPuddingPage() {
             many, many cookbooks that have not made it into the collection. Many of these may be
             lost to time. Too often, community cookbooks are discarded when their owners die.
           </p>
-
-          {/* Gulfport cookbook — floats right on desktop */}
-          <figure className={`${styles.figure} ${styles.figureRight}`}>
-            <Image
-              src="/images/cookbook-whats-cookin-gulfport.jpg"
-              alt="What's Cookin' in Gulfport cookbook cover"
-              width={200}
-              height={260}
-              className={styles.coverImg}
-            />
-            <figcaption>What&apos;s Cookin&apos; in Gulfport (Gulfport, Miss.)</figcaption>
-          </figure>
 
           <p>
             Over the years, I&apos;ve visited antique shops, thrift shops, estate sales, and yard
