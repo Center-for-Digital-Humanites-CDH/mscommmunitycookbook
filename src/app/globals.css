@@ -98,6 +98,15 @@ main {
   width: 100%;
 }
 
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+main > * {
+  animation: pageFadeIn 0.35s ease forwards;
+}
+
 /* Shared inner-page container */
 .page-container {
   max-width: 1400px;

@@ -223,7 +223,7 @@ export default function CookbookInventory({ cookbooks }: Props) {
           const org = book['Organization (Church, Civic/Club, Business/Professional)'] || '';
           const typeClass = org.toLowerCase().replace(/[^a-z]/g, '');
           return (
-            <div key={i} className={styles.item} onClick={() => setModal(book)}>
+            <div key={i} className={`${styles.item} ${styles[`item_${typeClass}`] || ''}`} onClick={() => setModal(book)}>
               <div className={styles.itemMain}>
                 <div className={styles.title}>{book.Title}</div>
                 <div className={styles.author}>{book.Author}</div>

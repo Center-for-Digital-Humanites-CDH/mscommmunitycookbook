@@ -185,6 +185,7 @@
 .item {
   background: #fff;
   border: 1px solid rgba(200, 118, 61, 0.12);
+  border-left: 3px solid #ddd;
   border-radius: 10px;
   padding: 1rem 1.25rem;
   display: grid;
@@ -199,10 +200,17 @@
 }
 
 .item:hover {
-  border-color: rgba(200, 118, 61, 0.4);
+  border-color: rgba(200, 118, 61, 0.35);
+  border-left-color: var(--primary-color);
   box-shadow: 0 4px 16px rgba(200, 118, 61, 0.1);
-  background: rgba(200, 118, 61, 0.015);
+  background: rgba(253, 250, 246, 0.7);
 }
+
+/* Left accent by org type */
+.item_church        { border-left-color: #66bb6a; }
+.item_civicclub     { border-left-color: #42a5f5; }
+.item_businessprofessional { border-left-color: var(--primary-color); }
+.item_extension     { border-left-color: #ab47bc; }
 
 .itemMain { grid-area: main; min-width: 0; }
 

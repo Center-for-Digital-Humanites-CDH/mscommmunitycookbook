@@ -26,8 +26,9 @@ export default function HomePage() {
           <div className={styles.heroAccent} />
           <h1>The Mississippi Community<br />Cookbook Project</h1>
           <p className={styles.heroSub}>
-            Cataloging and exploring cookbooks published by charitable, civic, and church
-            organizations in Mississippi before 1970.
+            The Mississippi Community Cookbook Project catalogs and explores cookbooks published by
+            charitable, civic, and church organizations in Mississippi before 1970 (and occasionally
+            beyond).
           </p>
         </div>
       </section>

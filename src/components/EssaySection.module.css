@@ -118,12 +118,15 @@
 
 /* Chart images */
 .inner figure {
-  margin: 1.75rem 0;
+  margin: 1.75rem auto;
+  max-width: 420px;
 }
 
 .inner figure img {
   width: 100%;
-  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: center top;
   border-radius: 10px;
   border: 1px solid var(--border);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);

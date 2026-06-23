@@ -1,0 +1,238 @@
+.page {
+  width: 100%;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  height: 50vh;
+  min-height: 300px;
+  background-image: url('/images/tales-bg.jpeg');
+  background-size: cover;
+  background-position: center 10%;
+  background-repeat: no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+}
+
+.heroContent h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Content ── */
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+}
+
+.intro {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 4rem;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+
+/* ── Section ── */
+.section {
+  margin-bottom: 5rem;
+}
+
+.sectionTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.sectionTitle::after {
+  content: '';
+  position: absolute;
+  bottom: -0.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52px;
+  height: 3px;
+  background: var(--primary-color);
+  border-radius: 2px;
+}
+
+/* ── Grid ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+}
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  padding: 2rem;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--hover-bg);
+  background-size: cover;
+  background-position: center 35%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: var(--primary-color);
+}
+
+.card:hover::before {
+  opacity: 0.18;
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Post Meta ── */
+.postMeta {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.date {
+  color: var(--text-muted);
+}
+
+.category {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.8rem;
+  background: rgba(200, 118, 61, 0.08);
+  padding: 0.2rem 0.6rem;
+  border-radius: 50px;
+  border: 1px solid rgba(200, 118, 61, 0.18);
+}
+
+/* ── Post Title ── */
+.postTitle {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 0.75rem;
+}
+
+.postTitle a {
+  color: var(--text-dark);
+  text-decoration: none;
+  border-bottom: none !important;
+  transition: color 0.2s ease;
+}
+
+.postTitle a:hover {
+  color: var(--primary-color);
+}
+
+/* ── Excerpt ── */
+.excerpt {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  margin-bottom: 1.25rem;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Read More ── */
+.readMore {
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border-bottom: none !important;
+  transition: color 0.2s ease;
+  margin-top: auto;
+}
+
+.readMore:hover {
+  color: var(--primary-dark);
+}
+
+/* ── Coming Soon ── */
+.comingSoon {
+  background: linear-gradient(135deg, var(--surface) 0%, rgba(200, 118, 61, 0.02) 100%);
+  padding: 3rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.comingSoonContent p {
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.comingSoonContent a {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+  .hero { height: 28vh; min-height: 220px; }
+  .content { padding: 2.5rem 1.25rem; }
+  .grid { grid-template-columns: 1fr; }
+  .sectionTitle { font-size: 1.8rem; }
+  .intro { font-size: 1rem; }
+  .comingSoon { padding: 2rem; }
+}

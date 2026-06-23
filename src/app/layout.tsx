@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Header />
-        <main style={{ paddingTop: '1.5rem' }}>
+        <main>
           {children}
         </main>
         <Footer />

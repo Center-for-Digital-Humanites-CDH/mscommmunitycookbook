@@ -19,20 +19,11 @@ const navLinks = [
 export default function Header() {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   function getActiveHref() {
     if (pathname.startsWith('/culinary-tales')) return '/culinary-tales';
     return pathname;
   }
-
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 8);
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => { setDrawerOpen(false); }, [pathname]);
 
@@ -45,7 +36,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
+      <header className={styles.header}>
         <div className={styles.navContainer}>
 
           {/* Desktop tab bar */}
