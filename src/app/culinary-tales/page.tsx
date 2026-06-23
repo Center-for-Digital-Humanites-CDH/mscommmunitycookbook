@@ -7,8 +7,10 @@ export const metadata: Metadata = {
   title: 'Culinary Tales — Mississippi Community Cookbook Project',
 };
 
-export default function CulinaryTalesPage() {
-  const allPosts = getAllPosts();
+export const revalidate = 60;
+
+export default async function CulinaryTalesPage() {
+  const allPosts = await getAllPosts();
 
   const now = new Date();
   const oneMonthAgo = new Date(now);
@@ -25,7 +27,6 @@ export default function CulinaryTalesPage() {
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
@@ -44,14 +45,8 @@ export default function CulinaryTalesPage() {
           <section className={styles.comingSoon}>
             <h2 className={styles.sectionTitle}>Stories Coming Soon</h2>
             <div className={styles.comingSoonContent}>
-              <p>
-                Dr. Andrew Haley is currently preparing fascinating culinary tales from the Mississippi
-                Community Cookbook Project archives.
-              </p>
-              <p>
-                Check back regularly for new content, or{' '}
-                <Link href="/cookbooks">explore our cookbook collection</Link> while you wait.
-              </p>
+              <p>Dr. Andrew Haley is currently preparing fascinating culinary tales from the Mississippi Community Cookbook Project archives.</p>
+              <p>Check back regularly, or <Link href="/cookbooks">explore our cookbook collection</Link> while you wait.</p>
             </div>
           </section>
         ) : (
@@ -63,7 +58,7 @@ export default function CulinaryTalesPage() {
                   <article
                     key={post.slug}
                     className={styles.card}
-                    style={{ '--hover-bg': `url(${post.backgroundImage})` } as React.CSSProperties}
+                    style={{ '--hover-bg': `url(${post.background_image})` } as React.CSSProperties}
                   >
                     <div className={styles.postMeta}>
                       <span className={styles.date}>{formatDate(post.date)}</span>
@@ -73,9 +68,7 @@ export default function CulinaryTalesPage() {
                       <Link href={`/culinary-tales/${post.slug}`}>{post.title}</Link>
                     </h3>
                     <p className={styles.excerpt}>{post.excerpt}</p>
-                    <Link href={`/culinary-tales/${post.slug}`} className={styles.readMore}>
-                      Read More →
-                    </Link>
+                    <Link href={`/culinary-tales/${post.slug}`} className={styles.readMore}>Read More →</Link>
                   </article>
                 ))}
               </div>
@@ -89,7 +82,7 @@ export default function CulinaryTalesPage() {
                     <article
                       key={post.slug}
                       className={styles.card}
-                      style={{ '--hover-bg': `url(${post.backgroundImage})` } as React.CSSProperties}
+                      style={{ '--hover-bg': `url(${post.background_image})` } as React.CSSProperties}
                     >
                       <div className={styles.postMeta}>
                         <span className={styles.date}>{formatDate(post.date)}</span>
@@ -99,9 +92,7 @@ export default function CulinaryTalesPage() {
                         <Link href={`/culinary-tales/${post.slug}`}>{post.title}</Link>
                       </h3>
                       <p className={styles.excerpt}>{post.excerpt}</p>
-                      <Link href={`/culinary-tales/${post.slug}`} className={styles.readMore}>
-                        Read More →
-                      </Link>
+                      <Link href={`/culinary-tales/${post.slug}`} className={styles.readMore}>Read More →</Link>
                     </article>
                   ))}
                 </div>

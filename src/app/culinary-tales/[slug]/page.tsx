@@ -4,12 +4,15 @@ import { notFound } from 'next/navigation';
 import { getAllPosts, getPostBySlug } from '@/lib/posts';
 import styles from './page.module.css';
 
+export const revalidate = 60;
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return getAllPosts().map((p) => ({ slug: p.slug }));
+  const posts = await getAllPosts();
+  return posts.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -32,10 +35,9 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <div className={styles.page}>
-      {/* Hero */}
       <section
         className={styles.hero}
-        style={{ backgroundImage: `url(${post.backgroundImage})` }}
+        style={{ backgroundImage: `url(${post.background_image})` }}
       >
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
@@ -59,7 +61,6 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
       </section>
 
-      {/* Content */}
       <div className={styles.blogContent}>
         <div className={styles.container}>
           {post.excerpt && (
