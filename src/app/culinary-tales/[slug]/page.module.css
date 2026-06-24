@@ -193,7 +193,7 @@
   align-items: center;
   gap: 0.5rem;
   background: var(--primary-color);
-  color: white;
+  color: white !important;
   text-decoration: none;
   border-bottom: none !important;
   padding: 0.85rem 2rem;
