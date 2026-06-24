@@ -1,0 +1,157 @@
+.wrapper {
+  border: 1.5px solid rgba(200, 118, 61, 0.25);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  background: #fafafa;
+  border-bottom: 1px solid rgba(200, 118, 61, 0.15);
+}
+
+.toolBtn {
+  height: 32px;
+  min-width: 32px;
+  padding: 0 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #444;
+  font-size: 0.88rem;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  user-select: none;
+}
+
+.toolBtn:hover:not(:disabled) {
+  background: rgba(200, 118, 61, 0.08);
+  border-color: rgba(200, 118, 61, 0.25);
+  color: var(--primary-color, #c8763d);
+}
+
+.toolBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.toolBtnActive {
+  background: rgba(200, 118, 61, 0.12) !important;
+  border-color: rgba(200, 118, 61, 0.35) !important;
+  color: var(--primary-color, #c8763d) !important;
+  font-weight: 700;
+}
+
+.divider {
+  width: 1px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.1);
+  margin: 0 0.25rem;
+  flex-shrink: 0;
+}
+
+/* ── Editor content area ── */
+.editorArea {
+  padding: 1.5rem 1.75rem;
+  min-height: 420px;
+  font-size: 1rem;
+  line-height: 1.85;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+}
+
+/* TipTap content styles */
+.wrapper :global(.tiptap p) {
+  margin-bottom: 1rem;
+}
+
+.wrapper :global(.tiptap h2) {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.wrapper :global(.tiptap h3) {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.6rem;
+  color: #1a1a1a;
+  line-height: 1.3;
+}
+
+.wrapper :global(.tiptap strong) {
+  font-weight: 700;
+}
+
+.wrapper :global(.tiptap em) {
+  font-style: italic;
+}
+
+.wrapper :global(.tiptap u) {
+  text-decoration: underline;
+}
+
+.wrapper :global(.tiptap ul),
+.wrapper :global(.tiptap ol) {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.wrapper :global(.tiptap li) {
+  margin-bottom: 0.35rem;
+}
+
+.wrapper :global(.tiptap blockquote) {
+  border-left: 3px solid #c8763d;
+  margin: 1.25rem 0;
+  padding: 0.5rem 1.25rem;
+  color: #666;
+  font-style: italic;
+  background: rgba(200, 118, 61, 0.04);
+  border-radius: 0 6px 6px 0;
+}
+
+.wrapper :global(.tiptap hr) {
+  border: none;
+  border-top: 1px solid #e5e5e5;
+  margin: 1.75rem 0;
+}
+
+.wrapper :global(.tiptap a) {
+  color: #c8763d;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.wrapper :global(.tiptap img) {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+  display: block;
+  border: 1px solid #e5e5e5;
+}
+
+.wrapper :global(.tiptap p.is-editor-empty:first-child::before) {
+  color: #aaa;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
