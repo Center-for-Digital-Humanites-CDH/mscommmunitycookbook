@@ -1,22 +1,37 @@
 import type { Metadata } from 'next';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import Image from 'next/image';
 import PageHero from '@/components/PageHero';
 import CookbookInventory from '@/components/CookbookInventory';
+import { supabaseAdmin } from '@/lib/supabase';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
   title: 'Cookbooks — Mississippi Community Cookbook Project',
 };
 
-function getCookbooks() {
-  const filePath = join(process.cwd(), 'public', 'cookbooks.json');
-  return JSON.parse(readFileSync(filePath, 'utf-8'));
+async function getCookbooks() {
+  const db = supabaseAdmin();
+  const { data } = await db
+    .from('cookbooks')
+    .select('title, author, date, community, county, organization, source, website')
+    .order('title', { ascending: true });
+
+  if (!data) return [];
+
+  return data.map((row) => ({
+    Title: row.title || '',
+    Author: row.author || '',
+    Date: row.date || '',
+    Community: row.community || '',
+    County: row.county || undefined,
+    'Organization (Church, Civic/Club, Business/Professional)': row.organization || '',
+    Source: row.source || '',
+    Website: row.website || undefined,
+  }));
 }
 
-export default function CookbooksPage() {
-  const cookbooks = getCookbooks();
+export default async function CookbooksPage() {
+  const cookbooks = await getCookbooks();
 
   return (
     <>

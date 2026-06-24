@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import dynamic from 'next/dynamic';
 import styles from './page.module.css';
+
+const CookbookAdmin = dynamic(() => import('./CookbookAdmin'), { ssr: false });
 
 interface Post {
   id: string;
@@ -46,6 +49,7 @@ const GUIDE = [
 ];
 
 export default function AdminDashboard({ supabase }: { supabase: SupabaseClient }) {
+  const [section, setSection] = useState<'posts' | 'cookbooks'>('posts');
   const [posts, setPosts] = useState<Post[]>([]);
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
   const [saving, setSaving] = useState(false);
@@ -363,31 +367,55 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   return (
     <div className={styles.dashboard}>
       <div className={styles.topBar}>
-        <h2>Culinary Tales — Posts</h2>
+        <h2>Admin</h2>
         <div className={styles.topActions}>
-          <button className={styles.newBtn} onClick={newPost}>+ New Post</button>
           <button className={styles.signOutBtn} onClick={signOut}>Sign out</button>
         </div>
       </div>
 
-      <div className={styles.postList}>
-        {posts.length === 0 && <p className={styles.empty}>No posts yet. Create your first one!</p>}
-        {posts.map((post) => (
-          <div key={post.id} className={styles.postRow}>
-            <div className={styles.postRowMain}>
-              <span className={post.published ? styles.badgePublished : styles.badgeDraft}>
-                {post.published ? 'Published' : 'Draft'}
-              </span>
-              <span className={styles.postRowTitle}>{post.title}</span>
-              <span className={styles.postRowDate}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-            </div>
-            <div className={styles.postRowActions}>
-              <button onClick={() => editPost(post)} className={styles.editBtn}>Edit</button>
-              <button onClick={() => deletePost(post.id)} className={styles.deleteBtn}>Delete</button>
-            </div>
-          </div>
-        ))}
+      <div className={styles.sectionTabs}>
+        <button
+          className={`${styles.sectionTab} ${section === 'posts' ? styles.sectionTabActive : ''}`}
+          onClick={() => setSection('posts')}
+        >
+          Culinary Tales Posts
+        </button>
+        <button
+          className={`${styles.sectionTab} ${section === 'cookbooks' ? styles.sectionTabActive : ''}`}
+          onClick={() => setSection('cookbooks')}
+        >
+          Cookbooks
+        </button>
       </div>
+
+      {section === 'cookbooks' ? (
+        <CookbookAdmin supabase={supabase} />
+      ) : (
+        <>
+          <div className={styles.postListHeader}>
+            <span />
+            <button className={styles.newBtn} onClick={newPost}>+ New Post</button>
+          </div>
+          <div className={styles.postList}>
+            {posts.length === 0 && <p className={styles.empty}>No posts yet. Create your first one!</p>}
+            {posts.map((post) => (
+              <div key={post.id} className={styles.postRow}>
+                <div className={styles.postRowMain}>
+                  <span className={post.published ? styles.badgePublished : styles.badgeDraft}>
+                    {post.published ? 'Published' : 'Draft'}
+                  </span>
+                  <span className={styles.postRowTitle}>{post.title}</span>
+                  <span className={styles.postRowDate}>{new Date(post.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                </div>
+                <div className={styles.postRowActions}>
+                  <button onClick={() => editPost(post)} className={styles.editBtn}>Edit</button>
+                  <button onClick={() => deletePost(post.id)} className={styles.deleteBtn}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
