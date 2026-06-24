@@ -1,45 +1,85 @@
 import type { Metadata } from 'next';
 import PageHero from '@/components/PageHero';
 import CountyGrid from '@/components/CountyGrid';
+import { supabaseAdmin } from '@/lib/supabase';
 import styles from './page.module.css';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Culinary Landscapes — Mississippi Community Cookbook Project',
 };
 
-const decades = [
-  { decade: '1890s', count: 1 },
-  { decade: '1900s', count: 10 },
-  { decade: '1910s', count: 14 },
-  { decade: '1920s', count: 20 },
-  { decade: '1930s', count: 9 },
-  { decade: '1940s', count: 35 },
-  { decade: '1950s', count: 97 },
-  { decade: '1960s', count: 148 },
-];
+async function getLandscapeData() {
+  const db = supabaseAdmin();
+  const { data } = await db.from('cookbooks').select('date, organization, county');
+  const cookbooks = data || [];
 
-const maxCount = Math.max(...decades.map((d) => d.count));
+  // ── Decades ──
+  const decadeCounts: Record<string, number> = {};
+  cookbooks.forEach((c) => {
+    const year = parseInt(c.date);
+    if (!isNaN(year) && year >= 1890 && year < 1970) {
+      const decade = `${Math.floor(year / 10) * 10}s`;
+      decadeCounts[decade] = (decadeCounts[decade] || 0) + 1;
+    }
+  });
+  const decades = ['1890s', '1900s', '1910s', '1920s', '1930s', '1940s', '1950s', '1960s'].map((d) => ({
+    decade: d,
+    count: decadeCounts[d] || 0,
+  }));
+  const totalDecades = decades.reduce((s, d) => s + d.count, 0);
 
-const orgs = [
-  { label: 'Civic & Club Organizations', count: 170, pct: '49.7%', barWidth: '100%', variant: 'civic' },
-  { label: 'Church Organizations', count: 154, pct: '45.0%', barWidth: '90.6%', variant: 'church' },
-  { label: 'Business & Professional', count: 18, pct: '5.3%', barWidth: '10.6%', variant: 'business' },
-];
+  // ── Organizations ──
+  const orgCounts: Record<string, number> = {};
+  cookbooks.forEach((c) => {
+    if (c.organization) orgCounts[c.organization] = (orgCounts[c.organization] || 0) + 1;
+  });
+  const rawOrgs = [
+    { label: 'Civic & Club Organizations', key: 'Civic/Club', variant: 'civic' },
+    { label: 'Church Organizations', key: 'Church', variant: 'church' },
+    { label: 'Business & Professional', key: 'Business/Professional', variant: 'business' },
+    { label: 'Extension Services', key: 'Extension', variant: 'extension' },
+  ]
+    .map((o) => ({ ...o, count: orgCounts[o.key] || 0 }))
+    .filter((o) => o.count > 0)
+    .sort((a, b) => b.count - a.count);
+  const totalOrgs = rawOrgs.reduce((s, o) => s + o.count, 0);
+  const maxOrg = rawOrgs[0]?.count || 1;
+  const orgs = rawOrgs.map((o) => ({
+    label: o.label,
+    count: o.count,
+    variant: o.variant,
+    pct: `${((o.count / totalOrgs) * 100).toFixed(1)}%`,
+    barWidth: `${(o.count / maxOrg) * 100}%`,
+  }));
 
-const topCounties = [
-  { name: 'Hinds County', count: 40 },
-  { name: 'Forrest County', count: 23 },
-  { name: 'Washington County', count: 17 },
-  { name: 'Jones County', count: 12 },
-  { name: 'Bolivar County', count: 12 },
-  { name: 'Jackson County', count: 9 },
-  { name: 'Leflore County', count: 9 },
-  { name: 'Lauderdale County', count: 8 },
-  { name: 'Lincoln County', count: 8 },
-  { name: 'Sunflower County', count: 8 },
-];
+  // ── Counties ──
+  const countyCounts: Record<string, number> = {};
+  cookbooks.forEach((c) => {
+    const name = c.county?.trim();
+    if (name) countyCounts[name] = (countyCounts[name] || 0) + 1;
+  });
+  const countyEntries = Object.entries(countyCounts).sort((a, b) => b[1] - a[1]);
+  const topCounties = countyEntries.slice(0, 10).map(([name, count]) => ({
+    name: name.endsWith(' County') ? name : `${name} County`,
+    count,
+  }));
+  const maxCounty = topCounties[0]?.count || 1;
+  const high = countyEntries.filter(([, v]) => v >= 10).length;
+  const medium = countyEntries.filter(([, v]) => v >= 3 && v < 10).length;
+  const low = countyEntries.filter(([, v]) => v <= 2).length;
+  const none = Math.max(0, 82 - countyEntries.length);
+  const totalCounty = countyEntries.reduce((s, [, v]) => s + v, 0);
+  const countiesWithData = countyEntries.length;
 
-export default function CulinaryLandscapesPage() {
+  return { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData };
+}
+
+export default async function CulinaryLandscapesPage() {
+  const { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData } = await getLandscapeData();
+  const maxDecade = Math.max(...decades.map((d) => d.count));
+
   return (
     <>
       <PageHero
@@ -98,14 +138,13 @@ export default function CulinaryLandscapesPage() {
           <div className={styles.chartCard}>
             <div className={styles.chartCardHeader}>
               <span className={styles.chartLabel}>Cookbooks by Decade</span>
-              <span className={styles.chartMeta}>Total: 342 cookbooks</span>
+              <span className={styles.chartMeta}>Total: {totalDecades} cookbooks</span>
             </div>
             <div className={styles.decadeChart}>
-              {/* Horizontal guide lines */}
               <div className={styles.guideLines} aria-hidden>
                 {[75, 50, 25].map((pct) => (
                   <div key={pct} className={styles.guideLine} style={{ bottom: `${pct}%` }}>
-                    <span className={styles.guideValue}>{Math.round((pct / 100) * maxCount)}</span>
+                    <span className={styles.guideValue}>{Math.round((pct / 100) * maxDecade)}</span>
                   </div>
                 ))}
               </div>
@@ -116,7 +155,7 @@ export default function CulinaryLandscapesPage() {
                     <div className={styles.barTrack}>
                       <div
                         className={styles.bar}
-                        style={{ height: `${(d.count / maxCount) * 100}%` }}
+                        style={{ height: `${maxDecade > 0 ? (d.count / maxDecade) * 100 : 0}%` }}
                       />
                     </div>
                     <span className={styles.barLabel}>{d.decade}</span>
@@ -210,7 +249,7 @@ export default function CulinaryLandscapesPage() {
           <div className={styles.chartCard}>
             <div className={styles.chartCardHeader}>
               <span className={styles.chartLabel}>Organization Types</span>
-              <span className={styles.chartMeta}>342 classified cookbooks</span>
+              <span className={styles.chartMeta}>{totalOrgs} classified cookbooks</span>
             </div>
             <div className={styles.orgCards}>
               {orgs.map((org) => (
@@ -259,35 +298,33 @@ export default function CulinaryLandscapesPage() {
             account for less than a third of the total number of cookbooks.
           </p>
 
-          {/* Summary stats */}
           <div className={styles.statGrid}>
             <div className={`${styles.statCard} ${styles.statHigh}`}>
-              <span className={styles.statNum}>5</span>
+              <span className={styles.statNum}>{high}</span>
               <span className={styles.statLabel}>High Production</span>
               <span className={styles.statSub}>10+ cookbooks</span>
             </div>
             <div className={`${styles.statCard} ${styles.statMedium}`}>
-              <span className={styles.statNum}>39</span>
+              <span className={styles.statNum}>{medium}</span>
               <span className={styles.statLabel}>Medium Production</span>
               <span className={styles.statSub}>3–9 cookbooks</span>
             </div>
             <div className={`${styles.statCard} ${styles.statLow}`}>
-              <span className={styles.statNum}>29</span>
+              <span className={styles.statNum}>{low}</span>
               <span className={styles.statLabel}>Low Production</span>
               <span className={styles.statSub}>1–2 cookbooks</span>
             </div>
             <div className={`${styles.statCard} ${styles.statNone}`}>
-              <span className={styles.statNum}>9</span>
+              <span className={styles.statNum}>{none}</span>
               <span className={styles.statLabel}>No Cookbooks</span>
               <span className={styles.statSub}>recorded</span>
             </div>
           </div>
 
-          {/* Top 10 */}
           <div className={styles.chartCard}>
             <div className={styles.chartCardHeader}>
               <span className={styles.chartLabel}>Top 10 Counties</span>
-              <span className={styles.chartMeta}>342 total · 73 of 82 counties</span>
+              <span className={styles.chartMeta}>{totalCounty} total · {countiesWithData} of 82 counties</span>
             </div>
             <div className={styles.countyList}>
               {topCounties.map((c, i) => (
@@ -297,7 +334,7 @@ export default function CulinaryLandscapesPage() {
                   <div className={styles.countyTrack}>
                     <div
                       className={styles.countyFill}
-                      style={{ width: `${(c.count / 40) * 100}%` }}
+                      style={{ width: `${(c.count / maxCounty) * 100}%` }}
                     />
                   </div>
                   <span className={styles.countyCount}>{c.count}</span>
