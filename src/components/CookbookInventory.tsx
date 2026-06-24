@@ -39,7 +39,7 @@ export default function CookbookInventory({ cookbooks }: Props) {
   const [decade, setDecade] = useState('');
   const [sort, setSort] = useState('date-desc');
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState<Cookbook | null>(null);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   const communities = useMemo(() => [...new Set(cookbooks.map((b) => b.Community))].sort(), [cookbooks]);
   const counties = useMemo(() => [...new Set(cookbooks.map((b) => b.County).filter(Boolean))].sort(), [cookbooks]);
@@ -84,6 +84,10 @@ export default function CookbookInventory({ cookbooks }: Props) {
 
   const hasFilters = search || community || county || organization || source || decade;
 
+  function handleItemClick(i: number) {
+    setExpanded((prev) => (prev === i ? null : i));
+  }
+
   function clearFilters() {
     setSearch('');
     setCommunity('');
@@ -92,12 +96,14 @@ export default function CookbookInventory({ cookbooks }: Props) {
     setSource('');
     setDecade('');
     setPage(1);
+    setExpanded(null);
   }
 
   function handleFilterChange(setter: (v: string) => void) {
     return (e: React.ChangeEvent<HTMLSelectElement>) => {
       setter(e.target.value);
       setPage(1);
+      setExpanded(null);
     };
   }
 
@@ -222,29 +228,77 @@ export default function CookbookInventory({ cookbooks }: Props) {
         {pageData.map((book, i) => {
           const org = book['Organization (Church, Civic/Club, Business/Professional)'] || '';
           const typeClass = org.toLowerCase().replace(/[^a-z]/g, '');
+          const isOpen = expanded === i;
           return (
-            <div key={i} className={`${styles.item} ${styles[`item_${typeClass}`] || ''}`} onClick={() => setModal(book)}>
-              <div className={styles.itemMain}>
-                <div className={styles.title}>{book.Title}</div>
-                <div className={styles.author}>{book.Author}</div>
+            <div key={i} className={styles.itemWrap}>
+              <div
+                className={`${styles.item} ${styles[`item_${typeClass}`] || ''} ${isOpen ? styles.itemActive : ''}`}
+                onClick={() => handleItemClick(i)}
+              >
+                <div className={styles.itemMain}>
+                  <div className={styles.title}>{book.Title}</div>
+                  <div className={styles.author}>{book.Author}</div>
+                </div>
+
+                <div className={styles.yearBadge}>{book.Date || 'Unknown'}</div>
+
+                <div className={styles.itemMeta}>
+                  <span className={styles.communityBadge}>{book.Community}</span>
+                  {book.County && <span className={styles.countyBadge}>{book.County} County</span>}
+                  <span className={`${styles.typeBadge} ${styles[typeClass] || ''}`}>{toTitleCase(org)}</span>
+                  {book.Source === 'USM Online' && book.Website ? (
+                    <a href={book.Website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={`${styles.sourceTag} ${styles.usmOnline}`}>
+                      USM Online 🔗
+                    </a>
+                  ) : book.Source === 'Unknown' ? (
+                    <span className={`${styles.sourceTag} ${styles.unknown}`}>Unknown</span>
+                  ) : (
+                    <span className={styles.sourceTag}>{book.Source}</span>
+                  )}
+                </div>
               </div>
 
-              <div className={styles.yearBadge}>{book.Date || 'Unknown'}</div>
-
-              <div className={styles.itemMeta}>
-                <span className={styles.communityBadge}>{book.Community}</span>
-                {book.County && <span className={styles.countyBadge}>{book.County} County</span>}
-                <span className={`${styles.typeBadge} ${styles[typeClass] || ''}`}>{toTitleCase(org)}</span>
-                {book.Source === 'USM Online' && book.Website ? (
-                  <a href={book.Website} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} className={`${styles.sourceTag} ${styles.usmOnline}`}>
-                    USM Online 🔗
-                  </a>
-                ) : book.Source === 'Unknown' ? (
-                  <span className={`${styles.sourceTag} ${styles.unknown}`}>Unknown</span>
-                ) : (
-                  <span className={styles.sourceTag}>{book.Source}</span>
-                )}
-              </div>
+              {isOpen && (
+                <div className={styles.expandPanel}>
+                  <div className={styles.expandRow}>
+                    <span className={styles.expandLabel}>Title</span>
+                    <span>{book.Title}</span>
+                  </div>
+                  <div className={styles.expandRow}>
+                    <span className={styles.expandLabel}>Author / Publisher</span>
+                    <span>{book.Author}</span>
+                  </div>
+                  <div className={styles.expandRow}>
+                    <span className={styles.expandLabel}>Date</span>
+                    <span>{book.Date || 'Unknown'}</span>
+                  </div>
+                  <div className={styles.expandRow}>
+                    <span className={styles.expandLabel}>Community</span>
+                    <span>{book.Community}</span>
+                  </div>
+                  {book.County && (
+                    <div className={styles.expandRow}>
+                      <span className={styles.expandLabel}>County</span>
+                      <span>{book.County}</span>
+                    </div>
+                  )}
+                  <div className={styles.expandRow}>
+                    <span className={styles.expandLabel}>Organization</span>
+                    <span>{toTitleCase(org)}</span>
+                  </div>
+                  <div className={styles.expandRow}>
+                    <span className={styles.expandLabel}>Source</span>
+                    <span>{book.Source}</span>
+                  </div>
+                  {book.Website && (
+                    <div className={styles.expandLink}>
+                      <a href={book.Website} target="_blank" rel="noopener noreferrer" className={`${styles.sourceTag} ${styles.usmOnline}`}>
+                        View Online 🔗
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -278,39 +332,6 @@ export default function CookbookInventory({ cookbooks }: Props) {
         </div>
       )}
 
-      {/* Modal */}
-      {modal && (
-        <div className={styles.modalBackdrop} onClick={() => setModal(null)}>
-          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.modalClose} onClick={() => setModal(null)}>×</button>
-
-            <h2 className={styles.modalTitle}>{modal.Title}</h2>
-            <p className={styles.modalAuthor}>{modal.Author}</p>
-
-            <div className={styles.modalBadges}>
-              <span className={styles.yearBadge}>{modal.Date || 'Unknown'}</span>
-              <span className={styles.communityBadge}>{modal.Community}</span>
-              {modal.County && <span className={styles.countyBadge}>{modal.County} County</span>}
-              <span className={`${styles.typeBadge} ${styles[modal['Organization (Church, Civic/Club, Business/Professional)'].toLowerCase().replace(/[^a-z]/g, '')] || ''}`}>
-                {toTitleCase(modal['Organization (Church, Civic/Club, Business/Professional)'])}
-              </span>
-            </div>
-
-            <div className={styles.modalDetail}>
-              <span>Source:</span>
-              <span>{modal.Source}</span>
-            </div>
-
-            {modal.Website && (
-              <div className={styles.modalLink}>
-                <a href={modal.Website} target="_blank" rel="noopener noreferrer" className={`${styles.sourceTag} ${styles.usmOnline}`}>
-                  View Online 🔗
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </section>
   );
 }
