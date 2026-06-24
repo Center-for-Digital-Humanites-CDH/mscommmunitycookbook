@@ -67,8 +67,11 @@ async function getLandscapeData() {
   // ── Counties ──
   const countyCounts: Record<string, number> = {};
   cookbooks.forEach((c) => {
-    const name = c.county?.trim();
-    if (name) countyCounts[name] = (countyCounts[name] || 0) + 1;
+    const raw = c.county?.trim();
+    if (!raw) return;
+    // Normalize: strip trailing " County" so "Bolivar County" and "Bolivar" merge into one
+    const name = raw.replace(/\s+county$/i, '');
+    countyCounts[name] = (countyCounts[name] || 0) + 1;
   });
   const countyEntries = Object.entries(countyCounts).sort((a, b) => b[1] - a[1]);
   const topCounties = countyEntries.slice(0, 10).map(([name, count]) => ({
