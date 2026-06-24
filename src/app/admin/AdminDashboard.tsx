@@ -8,6 +8,7 @@ import styles from './page.module.css';
 
 const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
 const CookbookAdmin = dynamic(() => import('./CookbookAdmin'), { ssr: false });
+const LandscapesAdmin = dynamic(() => import('./LandscapesAdmin'), { ssr: false });
 
 interface Post {
   id: string;
@@ -36,7 +37,7 @@ const EMPTY: Omit<Post, 'id'> = {
 
 
 export default function AdminDashboard({ supabase }: { supabase: SupabaseClient }) {
-  const [section, setSection] = useState<'posts' | 'cookbooks'>('cookbooks');
+  const [section, setSection] = useState<'cookbooks' | 'landscapes' | 'posts'>('cookbooks');
   const [posts, setPosts] = useState<Post[]>([]);
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
   const [saving, setSaving] = useState(false);
@@ -306,6 +307,12 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
           Cookbooks
         </button>
         <button
+          className={`${styles.sectionTab} ${section === 'landscapes' ? styles.sectionTabActive : ''}`}
+          onClick={() => setSection('landscapes')}
+        >
+          Culinary Landscapes
+        </button>
+        <button
           className={`${styles.sectionTab} ${section === 'posts' ? styles.sectionTabActive : ''}`}
           onClick={() => setSection('posts')}
         >
@@ -315,6 +322,8 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
 
       {section === 'cookbooks' ? (
         <CookbookAdmin supabase={supabase} />
+      ) : section === 'landscapes' ? (
+        <LandscapesAdmin supabase={supabase} />
       ) : (
         <>
           <div className={styles.postListHeader}>

@@ -12,8 +12,18 @@ export const metadata: Metadata = {
 
 async function getLandscapeData() {
   const db = supabaseAdmin();
-  const { data } = await db.from('cookbooks').select('date, organization, county');
-  const cookbooks = data || [];
+  const [{ data: cookbookRows }, { data: settingsRows }] = await Promise.all([
+    db.from('cookbooks').select('date, organization, county'),
+    db.from('site_settings').select('key, value').in('key', ['publisher_local', 'publisher_national']),
+  ]);
+  const cookbooks = cookbookRows || [];
+
+  const settings = Object.fromEntries((settingsRows || []).map((r) => [r.key, r.value]));
+  const publisherLocal = parseInt(settings['publisher_local'] || '0') || 0;
+  const publisherNational = parseInt(settings['publisher_national'] || '0') || 0;
+  const publisherTotal = publisherLocal + publisherNational;
+  const publisherLocalPct = publisherTotal > 0 ? ((publisherLocal / publisherTotal) * 100).toFixed(1) : '0.0';
+  const publisherNationalPct = publisherTotal > 0 ? ((publisherNational / publisherTotal) * 100).toFixed(1) : '0.0';
 
   // ── Decades ──
   const decadeCounts: Record<string, number> = {};
@@ -73,11 +83,11 @@ async function getLandscapeData() {
   const totalCounty = countyEntries.reduce((s, [, v]) => s + v, 0);
   const countiesWithData = countyEntries.length;
 
-  return { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData };
+  return { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData, publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct };
 }
 
 export default async function CulinaryLandscapesPage() {
-  const { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData } = await getLandscapeData();
+  const { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData, publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct } = await getLandscapeData();
   const maxDecade = Math.max(...decades.map((d) => d.count));
 
   return (
@@ -188,12 +198,12 @@ export default async function CulinaryLandscapesPage() {
           <div className={styles.chartCard}>
             <div className={styles.chartCardHeader}>
               <span className={styles.chartLabel}>Publisher Distribution</span>
-              <span className={styles.chartMeta}>276 dated cookbooks</span>
+              <span className={styles.chartMeta}>{publisherTotal} dated cookbooks</span>
             </div>
             <div className={styles.pieLayout}>
               <div className={styles.donut}>
                 <div className={styles.donutCenter}>
-                  <span className={styles.donutNum}>276</span>
+                  <span className={styles.donutNum}>{publisherTotal}</span>
                   <span className={styles.donutSub}>cookbooks</span>
                 </div>
               </div>
@@ -202,16 +212,16 @@ export default async function CulinaryLandscapesPage() {
                   <div className={styles.legendSwatch} />
                   <div className={styles.legendInfo}>
                     <span className={styles.legendTitle}>Local Publishers</span>
-                    <span className={styles.legendCount}>146</span>
-                    <span className={styles.legendPct}>52.9%</span>
+                    <span className={styles.legendCount}>{publisherLocal}</span>
+                    <span className={styles.legendPct}>{publisherLocalPct}%</span>
                   </div>
                 </div>
                 <div className={`${styles.legendCard} ${styles.legendCardNational}`}>
                   <div className={`${styles.legendSwatch} ${styles.legendSwatchNational}`} />
                   <div className={styles.legendInfo}>
                     <span className={styles.legendTitle}>National Publishers</span>
-                    <span className={styles.legendCount}>130</span>
-                    <span className={styles.legendPct}>47.1%</span>
+                    <span className={styles.legendCount}>{publisherNational}</span>
+                    <span className={styles.legendPct}>{publisherNationalPct}%</span>
                   </div>
                 </div>
               </div>
