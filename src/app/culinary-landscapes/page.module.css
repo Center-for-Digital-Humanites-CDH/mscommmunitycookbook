@@ -348,6 +348,7 @@
 .orgCard_civic .orgAccent { background: linear-gradient(to bottom, var(--primary-color), var(--primary-light)); }
 .orgCard_church .orgAccent { background: linear-gradient(to bottom, var(--primary-light), #e4a67f); }
 .orgCard_business .orgAccent { background: linear-gradient(to bottom, var(--text-muted), #aaa); }
+.orgCard_extension .orgAccent { background: linear-gradient(to bottom, #4a7c4a, #8ab88a); }
 
 .orgBody {
   flex: 1;
@@ -408,6 +409,7 @@
 .orgFill_civic { background: linear-gradient(90deg, var(--primary-dark), var(--primary-color), var(--primary-light)); }
 .orgFill_church { background: linear-gradient(90deg, var(--primary-color), var(--primary-light), #e4a67f); }
 .orgFill_business { background: linear-gradient(90deg, var(--text-muted), #aaa); }
+.orgFill_extension { background: linear-gradient(90deg, #4a7c4a, #6a9e6a, #8ab88a); }
 
 /* ── County stat cards ── */
 .statGrid {
