@@ -42,7 +42,12 @@ export default function CookbookInventory({ cookbooks }: Props) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const communities = useMemo(() => [...new Set(cookbooks.map((b) => b.Community))].sort(), [cookbooks]);
-  const counties = useMemo(() => [...new Set(cookbooks.map((b) => b.County).filter(Boolean))].sort(), [cookbooks]);
+  const counties = useMemo(() => {
+    const normalized = cookbooks
+      .map((b) => b.County?.trim().replace(/\s+county$/i, ''))
+      .filter(Boolean) as string[];
+    return [...new Set(normalized)].sort();
+  }, [cookbooks]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -51,7 +56,7 @@ export default function CookbookInventory({ cookbooks }: Props) {
 
       if (q && ![b.Title, b.Author, b.Community, b.County, org].some((v) => v?.toLowerCase().includes(q))) return false;
       if (community && b.Community !== community) return false;
-      if (county && b.County !== county) return false;
+      if (county && b.County?.trim().replace(/\s+county$/i, '') !== county) return false;
       if (source && b.Source !== source) return false;
       if (decade && getDecade(b.Date) !== decade) return false;
       if (organization) {
