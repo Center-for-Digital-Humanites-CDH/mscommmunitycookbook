@@ -5,6 +5,8 @@ import CookbookInventory from '@/components/CookbookInventory';
 import { supabaseAdmin } from '@/lib/supabase';
 import styles from './page.module.css';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Cookbooks — Mississippi Community Cookbook Project',
 };
