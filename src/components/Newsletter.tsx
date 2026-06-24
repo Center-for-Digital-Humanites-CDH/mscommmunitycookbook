@@ -7,37 +7,33 @@ export default function Newsletter() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus('loading');
 
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem('EMAIL') as HTMLInputElement).value;
+    const email = (e.currentTarget.elements.namedItem('EMAIL') as HTMLInputElement).value;
 
-    let url =
-      'https://gmail.us20.list-manage.com/subscribe/post-json?u=89d95b1506296222cdb651ffd&id=cb0a80759d&f_id=0095cdedf0';
-    url += `&EMAIL=${encodeURIComponent(email)}&c=__mailchimpCallback__`;
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    const script = document.createElement('script');
-    script.src = url;
+      const data = await res.json();
 
-    (window as any).__mailchimpCallback__ = (res: any) => {
-      document.body.removeChild(script);
-      delete (window as any).__mailchimpCallback__;
-
-      if (res.result === 'success') {
+      if (res.ok) {
         setStatus('success');
         setMessage('Thank you for subscribing!');
-        form.reset();
+        (e.target as HTMLFormElement).reset();
       } else {
         setStatus('error');
-        let msg = res.msg || 'Something went wrong. Please try again.';
-        if (msg.includes('0 - ')) msg = msg.replace('0 - ', '');
-        setMessage(msg);
+        setMessage(data.error || 'Something went wrong. Please try again.');
       }
-    };
-
-    document.body.appendChild(script);
+    } catch {
+      setStatus('error');
+      setMessage('Something went wrong. Please try again.');
+    }
   }
 
   return (
@@ -56,10 +52,6 @@ export default function Newsletter() {
             required
             className={styles.input}
           />
-          {/* Mailchimp bot protection */}
-          <div style={{ position: 'absolute', left: '-5000px' }} aria-hidden="true">
-            <input type="text" name="b_89d95b1506296222cdb651ffd_cb0a80759d" tabIndex={-1} defaultValue="" />
-          </div>
           <button type="submit" disabled={status === 'loading'} className={styles.btn}>
             {status === 'loading' ? 'Subscribing...' : 'Subscribe'}
           </button>
