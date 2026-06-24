@@ -36,7 +36,7 @@ const EMPTY: Omit<Post, 'id'> = {
 
 
 export default function AdminDashboard({ supabase }: { supabase: SupabaseClient }) {
-  const [section, setSection] = useState<'posts' | 'cookbooks'>('posts');
+  const [section, setSection] = useState<'posts' | 'cookbooks'>('cookbooks');
   const [posts, setPosts] = useState<Post[]>([]);
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
   const [saving, setSaving] = useState(false);
@@ -300,16 +300,16 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
 
       <div className={styles.sectionTabs}>
         <button
-          className={`${styles.sectionTab} ${section === 'posts' ? styles.sectionTabActive : ''}`}
-          onClick={() => setSection('posts')}
-        >
-          Culinary Tales Posts
-        </button>
-        <button
           className={`${styles.sectionTab} ${section === 'cookbooks' ? styles.sectionTabActive : ''}`}
           onClick={() => setSection('cookbooks')}
         >
           Cookbooks
+        </button>
+        <button
+          className={`${styles.sectionTab} ${section === 'posts' ? styles.sectionTabActive : ''}`}
+          onClick={() => setSection('posts')}
+        >
+          Culinary Tales Posts
         </button>
       </div>
 
