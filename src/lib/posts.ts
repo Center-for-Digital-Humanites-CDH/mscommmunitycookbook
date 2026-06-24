@@ -36,6 +36,11 @@ export async function getPostBySlug(slug: string): Promise<Post | null> {
 
   if (error || !data) return null;
 
-  const processed = await remark().use(remarkHtml).process(data.content || '');
+  const raw: string = data.content || '';
+  const isHtml = raw.trimStart().startsWith('<');
+  if (isHtml) {
+    return { ...data, content: raw } as Post;
+  }
+  const processed = await remark().use(remarkHtml).process(raw);
   return { ...data, content: processed.toString() } as Post;
 }
