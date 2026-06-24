@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import dynamic from 'next/dynamic';
+import type { RichEditorHandle } from './RichEditor';
 import styles from './page.module.css';
+
+const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
 
 interface Post {
   id: string;
@@ -29,21 +33,6 @@ const EMPTY: Omit<Post, 'id'> = {
   date: new Date().toISOString().split('T')[0],
 };
 
-const GUIDE = [
-  { cmd: '**bold text**', result: 'Bold' },
-  { cmd: '*italic text*', result: 'Italic' },
-  { cmd: '# Heading 1', result: 'Large heading' },
-  { cmd: '## Heading 2', result: 'Medium heading' },
-  { cmd: '### Heading 3', result: 'Small heading' },
-  { cmd: '[link text](https://url.com)', result: 'Hyperlink' },
-  { cmd: '![Alt text](/images/photo.jpg)', result: 'Image from site folder' },
-  { cmd: '![Alt text](https://full-url.com/img.jpg)', result: 'Image from web URL' },
-  { cmd: '> quoted text', result: 'Block quote' },
-  { cmd: '- item one', result: 'Bullet list item' },
-  { cmd: '1. item one', result: 'Numbered list item' },
-  { cmd: '---', result: 'Horizontal divider line' },
-  { cmd: '[1] footnote text', result: 'Footnote / endnote' },
-];
 
 export default function AdminDashboard({ supabase }: { supabase: SupabaseClient }) {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -51,12 +40,11 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [view, setView] = useState<'list' | 'editor'>('list');
-  const [guideOpen, setGuideOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const heroFileRef = useRef<HTMLInputElement>(null);
-  const contentRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<RichEditorHandle>(null);
   const [heroUploading, setHeroUploading] = useState(false);
   const [heroUploadMsg, setHeroUploadMsg] = useState('');
 
@@ -73,14 +61,12 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   function newPost() {
     setEditing({ ...EMPTY });
     setView('editor');
-    setGuideOpen(false);
     setUploadMsg('');
   }
 
   function editPost(post: Post) {
     setEditing({ ...post });
     setView('editor');
-    setGuideOpen(false);
     setUploadMsg('');
   }
 
@@ -96,22 +82,6 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
       }
       return updated;
     });
-  }
-
-  // Insert markdown at cursor position in the content textarea
-  function insertAtCursor(markdown: string) {
-    const el = contentRef.current;
-    if (!el) return;
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    const before = (editing?.content || '').slice(0, start);
-    const after = (editing?.content || '').slice(end);
-    const newContent = before + markdown + after;
-    handleChange('content', newContent);
-    setTimeout(() => {
-      el.focus();
-      el.setSelectionRange(start + markdown.length, start + markdown.length);
-    }, 0);
   }
 
   async function uploadImage(e: React.ChangeEvent<HTMLInputElement>) {
@@ -134,10 +104,8 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     }
 
     const { data } = supabase.storage.from('post-images').getPublicUrl(filename);
-    const url = data.publicUrl;
-    const markdown = `\n![image](${url})\n`;
-    insertAtCursor(markdown);
-    setUploadMsg('✓ Inserted! You can also copy this URL: ' + url);
+    editorRef.current?.insertImage(data.publicUrl);
+    setUploadMsg('✓ Image inserted into editor');
     setUploading(false);
     if (fileRef.current) fileRef.current.value = '';
   }
@@ -242,7 +210,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
             <div className={styles.imageUploadBox}>
               <div className={styles.imageUploadHeader}>
                 <span className={styles.imageUploadTitle}>📷 Insert Image into Post</span>
-                <span className={styles.imageUploadSub}>Upload from your laptop — image is inserted at your cursor position in the content below</span>
+                <span className={styles.imageUploadSub}>Click where you want the image in the editor below, then upload here</span>
               </div>
               <div className={styles.imageUploadRow}>
                 <input ref={fileRef} type="file" accept="image/*" onChange={uploadImage} className={styles.fileInput} disabled={uploading} />
@@ -251,54 +219,13 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
               {uploadMsg && <p className={styles.uploadMsg}>{uploadMsg}</p>}
             </div>
 
-            {/* ── Formatting guide ── */}
-            <div className={styles.guideBox}>
-              <button className={styles.guideToggle} onClick={() => setGuideOpen((o) => !o)}>
-                <span>📝 Formatting Guide — how to write bold, links, images, etc.</span>
-                <span>{guideOpen ? '▲' : '▼'}</span>
-              </button>
-              {guideOpen && (
-                <div className={styles.guideContent}>
-                  <p className={styles.guideIntro}>Type these directly into the Content box below. Everything uses Markdown — a simple plain-text format.</p>
-                  <table className={styles.guideTable}>
-                    <thead>
-                      <tr><th>What you type</th><th>What it does</th></tr>
-                    </thead>
-                    <tbody>
-                      {GUIDE.map((row) => (
-                        <tr key={row.cmd}>
-                          <td><code>{row.cmd}</code></td>
-                          <td>{row.result}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  <div className={styles.guideNotes}>
-                    <p><strong>To add an image between paragraphs:</strong></p>
-                    <ol>
-                      <li>Click in the Content box where you want the image</li>
-                      <li>Use the &ldquo;Insert Image&rdquo; uploader above — it inserts the image at your cursor automatically</li>
-                      <li>Keep writing your next paragraph below it</li>
-                    </ol>
-                    <p><strong>Where are uploaded images stored?</strong><br />
-                    Images upload to Supabase Storage (cloud). They get a permanent public URL that works on any device, anywhere — you do not need to put files on the server manually.</p>
-                    <p><strong>To use an image already on the site</strong> (like ones in the cookbooks section), type:<br />
-                    <code>![description](/images/filename.jpg)</code></p>
-                    <p><strong>Leave a blank line between paragraphs</strong> — that&apos;s how Markdown knows where one paragraph ends and another begins.</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
+            {/* ── Rich text editor ── */}
             <div className={styles.field}>
               <label>Content</label>
-              <textarea
-                ref={contentRef}
-                rows={28}
+              <RichEditor
+                ref={editorRef}
                 value={editing.content || ''}
-                onChange={(e) => handleChange('content', e.target.value)}
-                placeholder={`Write your post here. Leave a blank line between paragraphs.\n\nExample:\n\nThis is the first paragraph.\n\nThis is the second paragraph.\n\n![image description](upload an image above and it appears here automatically)\n\nThis paragraph comes after the image.`}
-                className={styles.contentArea}
+                onChange={(html) => handleChange('content', html)}
               />
             </div>
           </div>
