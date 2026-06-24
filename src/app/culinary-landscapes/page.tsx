@@ -65,32 +65,52 @@ async function getLandscapeData() {
   }));
 
   // ── Counties ──
+  const MS_COUNTIES = [
+    'Adams','Alcorn','Amite','Attala','Benton','Bolivar','Calhoun','Carroll',
+    'Chickasaw','Choctaw','Claiborne','Clarke','Clay','Coahoma','Copiah',
+    'Covington','DeSoto','Forrest','Franklin','George','Greene','Grenada',
+    'Hancock','Harrison','Hinds','Holmes','Humphreys','Issaquena','Itawamba',
+    'Jackson','Jasper','Jefferson','Jefferson Davis','Jones','Kemper','Lafayette',
+    'Lamar','Lauderdale','Lawrence','Leake','Lee','Leflore','Lincoln','Lowndes',
+    'Madison','Marion','Marshall','Monroe','Montgomery','Neshoba','Newton',
+    'Noxubee','Oktibbeha','Panola','Pearl River','Perry','Pike','Pontotoc',
+    'Prentiss','Quitman','Rankin','Scott','Sharkey','Simpson','Smith','Stone',
+    'Sunflower','Tallahatchie','Tate','Tippah','Tishomingo','Tunica','Union',
+    'Walthall','Warren','Washington','Wayne','Webster','Wilkinson','Winston',
+    'Yalobusha','Yazoo',
+  ];
+
   const countyCounts: Record<string, number> = {};
   cookbooks.forEach((c) => {
     const raw = c.county?.trim();
     if (!raw) return;
-    // Normalize: strip trailing " County" so "Bolivar County" and "Bolivar" merge into one
     const name = raw.replace(/\s+county$/i, '');
     countyCounts[name] = (countyCounts[name] || 0) + 1;
   });
+
+  // Build full 82-county list — DB counts merged with complete MS county list
+  const allCounties = MS_COUNTIES
+    .map((name) => ({ name: `${name} County`, count: countyCounts[name] || 0 }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
   const countyEntries = Object.entries(countyCounts).sort((a, b) => b[1] - a[1]);
   const topCounties = countyEntries.slice(0, 10).map(([name, count]) => ({
-    name: name.endsWith(' County') ? name : `${name} County`,
+    name: `${name} County`,
     count,
   }));
   const maxCounty = topCounties[0]?.count || 1;
-  const high = countyEntries.filter(([, v]) => v >= 10).length;
-  const medium = countyEntries.filter(([, v]) => v >= 3 && v < 10).length;
-  const low = countyEntries.filter(([, v]) => v <= 2).length;
-  const none = Math.max(0, 82 - countyEntries.length);
+  const high = allCounties.filter((c) => c.count >= 10).length;
+  const medium = allCounties.filter((c) => c.count >= 3 && c.count <= 9).length;
+  const low = allCounties.filter((c) => c.count >= 1 && c.count <= 2).length;
+  const none = allCounties.filter((c) => c.count === 0).length;
   const totalCounty = countyEntries.reduce((s, [, v]) => s + v, 0);
   const countiesWithData = countyEntries.length;
 
-  return { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData, publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct };
+  return { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData, allCounties, publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct };
 }
 
 export default async function CulinaryLandscapesPage() {
-  const { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData, publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct } = await getLandscapeData();
+  const { decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty, high, medium, low, none, totalCounty, countiesWithData, allCounties, publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct } = await getLandscapeData();
   const maxDecade = Math.max(...decades.map((d) => d.count));
 
   return (
@@ -357,7 +377,7 @@ export default async function CulinaryLandscapesPage() {
             <p className={styles.chartNote}><em>Future updates will include additional demographic information and maps.</em></p>
           </div>
 
-          <CountyGrid />
+          <CountyGrid counties={allCounties} />
         </section>
 
         {/* ── Maps ── */}
