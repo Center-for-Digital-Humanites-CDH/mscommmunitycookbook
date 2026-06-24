@@ -144,10 +144,19 @@ export default function CookbookAdmin({ supabase }: { supabase: SupabaseClient }
             <div className={styles.row2}>
               <div className={styles.field}>
                 <label>Source / Location</label>
-                <select value={editing.source || ''} onChange={(e) => handleChange('source', e.target.value)}>
-                  <option value="">— Select —</option>
+                <select
+                  value={SOURCE_OPTIONS.includes(editing.source || '') ? (editing.source || '') : ''}
+                  onChange={(e) => { if (e.target.value) handleChange('source', e.target.value); }}
+                >
+                  <option value="">— Quick select common sources —</option>
                   {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
+                <input
+                  value={editing.source || ''}
+                  onChange={(e) => handleChange('source', e.target.value)}
+                  placeholder="Or type any source / location (e.g. Tulane, NOLA Public Library)"
+                  style={{ marginTop: '0.5rem' }}
+                />
               </div>
               <div className={styles.field}>
                 <label>USM Online Link</label>
