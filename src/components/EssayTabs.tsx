@@ -26,12 +26,7 @@ export default function EssayTabs({ tabs, columns = 2 }: Props) {
   const close = useCallback(() => setOpenId(null), []);
 
   useEffect(() => {
-    if (openId) {
-      document.body.style.overflow = 'hidden';
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    } else {
-      document.body.style.overflow = '';
-    }
+    document.body.style.overflow = openId ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [openId]);
 
