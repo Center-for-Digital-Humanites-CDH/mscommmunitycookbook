@@ -1,4 +1,4 @@
-/* ── Tab card grid ── */
+/* ── Card grid ── */
 .grid {
   display: grid;
   grid-template-columns: repeat(var(--cols, 2), 1fr);
@@ -6,28 +6,22 @@
   margin-top: 1.5rem;
 }
 
-/* ── Card shell ── */
+/* ── Card ── */
 .card {
   position: relative;
   background: white;
   border: 1px solid rgba(200, 118, 61, 0.14);
   border-radius: 14px;
-  text-align: left;
-  cursor: pointer;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-height: 200px;
-  transition:
-    box-shadow 0.28s ease,
-    border-color 0.28s ease,
-    transform 0.28s ease;
+  text-decoration: none;
+  transition: box-shadow 0.28s ease, border-color 0.28s ease, transform 0.28s ease;
 }
 
 .card:hover {
-  box-shadow:
-    0 10px 36px rgba(200, 118, 61, 0.14),
-    0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10px 36px rgba(200, 118, 61, 0.14), 0 2px 8px rgba(0, 0, 0, 0.06);
   border-color: rgba(200, 118, 61, 0.35);
   transform: translateY(-3px);
 }
@@ -36,11 +30,10 @@
   transform: translateY(-1px);
 }
 
-/* ── Background image — always present, revealed on hover ── */
+/* ── Background image ── */
 .cardBgImg {
   object-fit: cover;
   object-position: center;
-  /* z-index 0 — image sits behind content */
   z-index: 0 !important;
   transition: transform 0.5s ease, opacity 0.4s ease;
   opacity: 0;
@@ -51,7 +44,7 @@
   transform: scale(1.04);
 }
 
-/* White overlay — thins slightly on hover so image shows through, text stays readable */
+/* ── White overlay ── */
 .cardOverlay {
   position: absolute;
   inset: 0;
@@ -61,11 +54,10 @@
 }
 
 .card:hover .cardOverlay {
-  /* Strong enough overlay that text stays fully readable; image shows through as atmosphere */
   background: rgba(253, 250, 246, 0.7);
 }
 
-/* ── Card text content — always above image + overlay ── */
+/* ── Text content ── */
 .cardContent {
   position: relative;
   z-index: 2;
@@ -106,7 +98,6 @@
   color: #1a100a;
 }
 
-
 .cardCta {
   display: inline-flex;
   align-items: center;
@@ -123,7 +114,7 @@
   gap: 0.58rem;
 }
 
-/* ── Wide card (Chicken Spaghetti — spans all columns) ── */
+/* ── Wide card ── */
 .cardWide {
   grid-column: 1 / -1;
   min-height: 170px;
@@ -138,244 +129,9 @@
   font-size: 1.1rem;
 }
 
-.cardWide .cardSummary {
-  font-size: 0.85rem;
-  max-width: 68ch;
-}
-
-/* ── Modal backdrop ── */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(12, 7, 2, 0.6);
-  z-index: 300;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  animation: backdropIn 200ms ease forwards;
-}
-
-@keyframes backdropIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-/* ── Modal panel ── */
-.modal {
-  background: white;
-  border-radius: 20px;
-  max-width: 760px;
-  width: 100%;
-  height: 88vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.3);
-  animation: modalIn 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-
-@keyframes modalIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Modal header ── */
-.modalHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.5rem;
-  padding: 1.75rem 2rem 1.5rem;
-  border-bottom: 1px solid rgba(200, 118, 61, 0.12);
-  background: #fdfaf7;
-  flex-shrink: 0;
-}
-
-.modalMeta { flex: 1; min-width: 0; }
-
-.modalSeries {
-  display: inline-block;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--primary-color);
-  margin-bottom: 0.4rem;
-}
-
-.modalTitle {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.55rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin: 0;
-  line-height: 1.3;
-}
-
-.closeBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(200, 118, 61, 0.2);
-  background: white;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  flex-shrink: 0;
-  color: var(--text-muted);
-  transition: background 0.15s ease, color 0.15s ease, transform 0.2s ease;
-}
-
-.closeBtn:hover {
-  background: rgba(200, 118, 61, 0.08);
-  color: var(--primary-color);
-  transform: rotate(90deg);
-}
-
-/* ── Modal body prose ── */
-.modalBody {
-  overflow-y: auto;
-  padding: 2rem 2.5rem 3rem;
-  overscroll-behavior: contain;
-  scroll-behavior: smooth;
-  max-width: 680px;
-  margin: 0 auto;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.modalBody p {
-  font-size: 1.04rem;
-  line-height: 1.88;
-  color: var(--text-dark);
-  margin-bottom: 1.4rem;
-}
-
-.modalBody h4 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-dark);
-  margin: 1.75rem 0 0.7rem;
-}
-
-.modalBody h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin: 2rem 0 0.85rem;
-}
-
-.modalBody em {
-  font-style: italic;
-}
-
-.modalBody strong {
-  font-weight: 700;
-}
-
-.modalBody hr {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 2rem 0;
-}
-
-.modalBody a {
-  color: var(--primary-color);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 2px;
-  transition: color 0.15s ease;
-}
-
-.modalBody a:hover {
-  color: var(--primary-dark);
-}
-
-.modalBody blockquote {
-  border-left: 3px solid var(--primary-color);
-  background: rgba(200, 118, 61, 0.04);
-  border-radius: 0 10px 10px 0;
-  padding: 1.1rem 1.4rem;
-  margin: 1.5rem 0;
-  font-style: italic;
-}
-
-.modalBody blockquote p {
-  margin-bottom: 1rem;
-}
-
-.modalBody blockquote p:last-child {
-  margin-bottom: 0;
-}
-
-.modalBody figure {
-  margin: 1.75rem 0;
-}
-
-.modalBody figure img {
-  width: 100%;
-  height: auto;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  display: block;
-}
-
-.modalBody figure figcaption {
-  font-size: 0.81rem;
-  color: var(--text-muted);
-  font-style: italic;
-  text-align: center;
-  margin-top: 0.6rem;
-}
-
-.modalBody sup a {
-  font-size: 0.72em;
-  color: var(--primary-color);
-  font-weight: 600;
-  text-decoration: none;
-  vertical-align: super;
-}
-
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .grid {
     grid-template-columns: 1fr !important;
-  }
-
-  .backdrop {
-    padding: 0.75rem;
-    align-items: flex-end;
-  }
-
-  .modal {
-    height: 92dvh;
-    border-radius: 16px 16px 0 0;
-  }
-
-  .backdrop {
-    align-items: flex-end;
-    padding: 0;
-  }
-
-  .modalHeader {
-    padding: 1.25rem 1.25rem 1rem;
-  }
-
-  .modalTitle {
-    font-size: 1.2rem;
-  }
-
-  .modalBody {
-    padding: 1.25rem 1.25rem 2rem;
-    max-width: 100%;
-  }
-
-  .modalBody p {
-    font-size: 0.97rem;
   }
 }

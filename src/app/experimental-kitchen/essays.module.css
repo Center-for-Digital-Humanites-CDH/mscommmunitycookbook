@@ -1,0 +1,31 @@
+.footnotes {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.footnotes h4 {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.footnotes ol {
+  padding-left: 1.25rem;
+  margin: 0;
+}
+
+.footnotes li {
+  font-size: 0.81rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+
+.footnotes a {
+  color: var(--primary-color);
+}
