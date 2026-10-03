@@ -4,11 +4,13 @@ import { useState, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 import type { RichEditorHandle } from './RichEditor';
+import { composeInGmail, copyEmails } from '@/lib/announce';
 import styles from './page.module.css';
 
 const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
 const CookbookAdmin = dynamic(() => import('./CookbookAdmin'), { ssr: false });
 const LandscapesAdmin = dynamic(() => import('./LandscapesAdmin'), { ssr: false });
+const SubscribersAdmin = dynamic(() => import('./SubscribersAdmin'), { ssr: false });
 
 interface Post {
   id: string;
@@ -37,7 +39,7 @@ const EMPTY: Omit<Post, 'id'> = {
 
 
 export default function AdminDashboard({ supabase }: { supabase: SupabaseClient }) {
-  const [section, setSection] = useState<'cookbooks' | 'landscapes' | 'posts'>('cookbooks');
+  const [section, setSection] = useState<'cookbooks' | 'landscapes' | 'posts' | 'subscribers'>('cookbooks');
   const [posts, setPosts] = useState<Post[]>([]);
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
   const [saving, setSaving] = useState(false);
@@ -50,6 +52,8 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   const editorRef = useRef<RichEditorHandle>(null);
   const [heroUploading, setHeroUploading] = useState(false);
   const [heroUploadMsg, setHeroUploadMsg] = useState('');
+  const [announceMsg, setAnnounceMsg] = useState('');
+  const [manualBcc, setManualBcc] = useState<string[] | null>(null);
 
   async function loadPosts() {
     const { data } = await supabase
@@ -65,12 +69,16 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     setEditing({ ...EMPTY });
     setView('editor');
     setUploadMsg('');
+    setAnnounceMsg('');
+    setManualBcc(null);
   }
 
   function editPost(post: Post) {
     setEditing({ ...post });
     setView('editor');
     setUploadMsg('');
+    setAnnounceMsg('');
+    setManualBcc(null);
   }
 
   function autoSlug(title: string) {
@@ -157,20 +165,56 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     };
 
     let error;
-    if (editing.id) {
-      ({ error } = await supabase.from('posts').update(payload).eq('id', editing.id));
+    let id = editing.id;
+    if (id) {
+      ({ error } = await supabase.from('posts').update(payload).eq('id', id));
     } else {
-      ({ error } = await supabase.from('posts').insert(payload));
+      let inserted;
+      ({ data: inserted, error } = await supabase.from('posts').insert(payload).select('id').single());
+      id = inserted?.id;
     }
 
     setSaving(false);
     if (error) {
       setMsg('Error: ' + error.message);
+    } else if (payload.published) {
+      // Stay in the editor so the professor can announce the post right away
+      setEditing((prev) => ({ ...prev, id }));
+      setMsg('Saved! It will be live on the site within a minute.');
+      await loadPosts();
     } else {
       setMsg('Saved!');
       await loadPosts();
       setTimeout(() => { setMsg(''); setView('list'); }, 1200);
     }
+  }
+
+  const isLive = Boolean(editing?.id && posts.find((p) => p.id === editing.id)?.published);
+
+  async function announce() {
+    if (!editing?.slug || !editing.title) return;
+    setManualBcc(null);
+    try {
+      const result = await composeInGmail({
+        title: editing.title,
+        slug: editing.slug,
+        excerpt: editing.excerpt || '',
+        background_image: editing.background_image,
+        author: editing.author,
+        date: editing.date,
+        category: editing.category,
+      }, supabase);
+      setAnnounceMsg(result.note);
+      setManualBcc(result.manualBcc ?? null);
+    } catch (err) {
+      setAnnounceMsg('Error: ' + (err as Error).message);
+    }
+  }
+
+  async function copyBcc() {
+    if (!manualBcc) return;
+    await copyEmails(manualBcc);
+    setAnnounceMsg(`✓ Copied ${manualBcc.length} emails. Paste them into Bcc in Gmail.`);
   }
 
   async function deletePost(id: string) {
@@ -248,6 +292,20 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
             </div>
 
             <div className={styles.sideCard}>
+              <h3>Announce to Subscribers</h3>
+              <p className={styles.fieldHint}>
+                {isLive
+                  ? 'Copies a designed email for this post and opens Gmail with every current subscriber in Bcc. Press Ctrl+V in the message, review, then Send.'
+                  : 'Save this post as Published first, then you can announce it to subscribers.'}
+              </p>
+              {announceMsg && <p className={announceMsg.startsWith('Error') ? styles.error : styles.success}>{announceMsg}</p>}
+              <button onClick={announce} disabled={!isLive} className={styles.saveBtn}>Compose in Gmail</button>
+              {manualBcc && (
+                <button onClick={copyBcc} className={styles.backBtn}>Copy emails for Bcc</button>
+              )}
+            </div>
+
+            <div className={styles.sideCard}>
               <h3>Details</h3>
               <div className={styles.field}>
                 <label>Date</label>
@@ -277,7 +335,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
                   value={editing.background_image || ''}
                   onChange={(e) => handleChange('background_image', e.target.value)}
                   placeholder="https://... or /images/file.jpg"
-                  style={{ marginTop: '0.5rem' }}
+                 
                 />
                 {editing.background_image && (
                   <img src={editing.background_image} alt="preview" className={styles.imgPreview} />
@@ -318,12 +376,20 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
         >
           Culinary Tales Posts
         </button>
+        <button
+          className={`${styles.sectionTab} ${section === 'subscribers' ? styles.sectionTabActive : ''}`}
+          onClick={() => setSection('subscribers')}
+        >
+          Subscribers
+        </button>
       </div>
 
       {section === 'cookbooks' ? (
         <CookbookAdmin supabase={supabase} />
       ) : section === 'landscapes' ? (
         <LandscapesAdmin supabase={supabase} />
+      ) : section === 'subscribers' ? (
+        <SubscribersAdmin supabase={supabase} />
       ) : (
         <>
           <div className={styles.postListHeader}>
