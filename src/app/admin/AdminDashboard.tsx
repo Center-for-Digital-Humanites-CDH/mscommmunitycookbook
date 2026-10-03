@@ -11,6 +11,9 @@ const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
 const CookbookAdmin = dynamic(() => import('./CookbookAdmin'), { ssr: false });
 const LandscapesAdmin = dynamic(() => import('./LandscapesAdmin'), { ssr: false });
 const SubscribersAdmin = dynamic(() => import('./SubscribersAdmin'), { ssr: false });
+const PagesAdmin = dynamic(() => import('./PagesAdmin'), { ssr: false });
+
+type Section = 'pages' | 'cookbooks' | 'landscapes' | 'posts' | 'subscribers';
 
 interface Post {
   id: string;
@@ -39,7 +42,15 @@ const EMPTY: Omit<Post, 'id'> = {
 
 
 export default function AdminDashboard({ supabase }: { supabase: SupabaseClient }) {
-  const [section, setSection] = useState<'cookbooks' | 'landscapes' | 'posts' | 'subscribers'>('cookbooks');
+  const [section, setSection] = useState<Section>('cookbooks');
+  const [pagesDirty, setPagesDirty] = useState(false);
+
+  function switchTo(next: Section) {
+    if (next === section) return;
+    if (pagesDirty && !confirm('You have unsaved changes on this page. Leave without saving?')) return;
+    setPagesDirty(false);
+    setSection(next);
+  }
   const [posts, setPosts] = useState<Post[]>([]);
   const [editing, setEditing] = useState<Partial<Post> | null>(null);
   const [saving, setSaving] = useState(false);
@@ -224,6 +235,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   }
 
   async function signOut() {
+    if (pagesDirty && !confirm('You have unsaved changes on this page. Leave without saving?')) return;
     await supabase.auth.signOut();
     window.location.reload();
   }
@@ -359,26 +371,32 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
 
       <div className={styles.sectionTabs}>
         <button
+          className={`${styles.sectionTab} ${section === 'pages' ? styles.sectionTabActive : ''}`}
+          onClick={() => switchTo('pages')}
+        >
+          Pages
+        </button>
+        <button
           className={`${styles.sectionTab} ${section === 'cookbooks' ? styles.sectionTabActive : ''}`}
-          onClick={() => setSection('cookbooks')}
+          onClick={() => switchTo('cookbooks')}
         >
           Cookbooks
         </button>
         <button
           className={`${styles.sectionTab} ${section === 'landscapes' ? styles.sectionTabActive : ''}`}
-          onClick={() => setSection('landscapes')}
+          onClick={() => switchTo('landscapes')}
         >
           Culinary Landscapes
         </button>
         <button
           className={`${styles.sectionTab} ${section === 'posts' ? styles.sectionTabActive : ''}`}
-          onClick={() => setSection('posts')}
+          onClick={() => switchTo('posts')}
         >
           Culinary Tales Posts
         </button>
         <button
           className={`${styles.sectionTab} ${section === 'subscribers' ? styles.sectionTabActive : ''}`}
-          onClick={() => setSection('subscribers')}
+          onClick={() => switchTo('subscribers')}
         >
           Subscribers
         </button>
@@ -390,6 +408,8 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
         <LandscapesAdmin supabase={supabase} />
       ) : section === 'subscribers' ? (
         <SubscribersAdmin supabase={supabase} />
+      ) : section === 'pages' ? (
+        <PagesAdmin supabase={supabase} onDirtyChange={setPagesDirty} />
       ) : (
         <>
           <div className={styles.postListHeader}>
