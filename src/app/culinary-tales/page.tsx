@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getAllPosts } from '@/lib/posts';
+import { getPageContent } from '@/lib/pageContent';
 import styles from './page.module.css';
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function CulinaryTalesPage() {
-  const allPosts = await getAllPosts();
+  const [allPosts, c] = await Promise.all([getAllPosts(), getPageContent('culinary-tales')]);
 
   const now = new Date();
   const oneMonthAgo = new Date(now);
@@ -27,32 +28,28 @@ export default async function CulinaryTalesPage() {
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section
+        className={styles.hero}
+        style={{ backgroundImage: `url(${c['hero.image']})`, backgroundPosition: c['hero.position'] }}
+      >
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
-          <h1>Culinary Tales</h1>
+          <h1>{c['hero.title']}</h1>
         </div>
       </section>
 
       <div className={styles.content}>
-        <p className={styles.intro}>
-          Cookbooks tell stories. The best of these, if all goes according to plan, will appear in my
-          forthcoming book on community cookbooks. However, I am constantly finding stories that I would
-          love to share and when I have time I will add some to the blog.
-        </p>
+        <p className={styles.intro}>{c['intro']}</p>
 
         {allPosts.length === 0 ? (
           <section className={styles.comingSoon}>
-            <h2 className={styles.sectionTitle}>Stories Coming Soon</h2>
-            <div className={styles.comingSoonContent}>
-              <p>Dr. Andrew Haley is currently preparing fascinating culinary tales from the Mississippi Community Cookbook Project archives.</p>
-              <p>Check back regularly, or <Link href="/cookbooks">explore our cookbook collection</Link> while you wait.</p>
-            </div>
+            <h2 className={styles.sectionTitle}>{c['empty.heading']}</h2>
+            <div className={styles.comingSoonContent} dangerouslySetInnerHTML={{ __html: c['empty.text'] }} />
           </section>
         ) : (
           <>
             <section className={styles.section}>
-              <h2 className={styles.sectionTitle}>Recent Stories</h2>
+              <h2 className={styles.sectionTitle}>{c['recentHeading']}</h2>
               <div className={styles.grid}>
                 {recentPosts.map((post) => (
                   <article
@@ -76,7 +73,7 @@ export default async function CulinaryTalesPage() {
 
             {pastPosts.length > 0 && (
               <section className={styles.section}>
-                <h2 className={styles.sectionTitle}>Past Stories</h2>
+                <h2 className={styles.sectionTitle}>{c['pastHeading']}</h2>
                 <div className={styles.grid}>
                   {pastPosts.map((post) => (
                     <article

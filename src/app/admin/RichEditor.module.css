@@ -155,3 +155,39 @@
   height: 0;
   pointer-events: none;
 }
+
+/* Essay editor: pictures with captions, footnote numbers, small headings */
+.wrapper :global(.tiptap figure) {
+  margin: 1.25rem 0;
+}
+
+.wrapper :global(.tiptap figure img) {
+  margin: 0;
+}
+
+.wrapper :global(.tiptap figcaption) {
+  font-size: 0.85rem;
+  color: #777;
+  font-style: italic;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.wrapper :global(.tiptap .ProseMirror-selectednode img) {
+  outline: 3px solid #c8763d;
+  outline-offset: 2px;
+}
+
+.wrapper :global(.tiptap sup) {
+  font-size: 0.72em;
+  color: #c8763d;
+}
+
+.wrapper :global(.tiptap h4) {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #666;
+  margin: 1.75rem 0 0.5rem;
+}

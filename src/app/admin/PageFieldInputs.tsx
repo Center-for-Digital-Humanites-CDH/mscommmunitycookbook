@@ -7,7 +7,7 @@ import styles from './PagesAdmin.module.css';
 
 // Inputs shared by the Pages tab and its list editor
 
-async function uploadPageImage(supabase: SupabaseClient, file: File) {
+export async function uploadPageImage(supabase: SupabaseClient, file: File) {
   if (!file.type.startsWith('image/')) throw new Error('That file is not an image.');
   const ext = file.name.split('.').pop();
   const filename = `page-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;

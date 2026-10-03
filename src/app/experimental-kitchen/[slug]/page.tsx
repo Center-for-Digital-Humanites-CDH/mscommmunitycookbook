@@ -1,16 +1,25 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { essays, getEssayById } from '../essays';
+import { getPageContent } from '@/lib/pageContent';
+import { essaysFromContent } from '@/lib/essays';
 import styles from './page.module.css';
 
-export function generateStaticParams() {
-  return essays.map((e) => ({ slug: e.id }));
+export const revalidate = 60;
+
+async function getEssay(slug: string) {
+  const c = await getPageContent('experimental-kitchen');
+  return essaysFromContent(c['essays']).find((e) => e.slug === slug);
+}
+
+export async function generateStaticParams() {
+  const c = await getPageContent('experimental-kitchen');
+  return essaysFromContent(c['essays']).map((e) => ({ slug: e.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const essay = getEssayById(slug);
+  const essay = await getEssay(slug);
   if (!essay) return {};
   return {
     title: `${essay.title} — Experimental Kitchen`,
@@ -19,7 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function EssayPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const essay = getEssayById(slug);
+  const essay = await getEssay(slug);
   if (!essay) notFound();
 
   return (
@@ -37,9 +46,7 @@ export default async function EssayPage({ params }: { params: Promise<{ slug: st
           {essay.subtitle && <p className={styles.subtitle}>{essay.subtitle}</p>}
         </header>
 
-        <div className={styles.body}>
-          {essay.content}
-        </div>
+        <div className={styles.body} dangerouslySetInnerHTML={{ __html: essay.content }} />
 
         <footer className={styles.footer}>
           <Link href="/experimental-kitchen" className={styles.footerLink}>
