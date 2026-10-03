@@ -7,7 +7,7 @@ import { PAGES, pageDefaults, type PageDef, type PageField } from '@/content/pag
 import type { CookbookRow } from '@/lib/landscapeStats';
 import ChartEditor from './ChartEditor';
 import ListEditor from './ListEditor';
-import { ImageField, positionPercent } from './PageFieldInputs';
+import { ImageField, positionPercent, uploadPageImage } from './PageFieldInputs';
 import admin from './page.module.css';
 import styles from './PagesAdmin.module.css';
 
@@ -119,6 +119,15 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
         return <RichEditor value={value} onChange={(html) => set(field.key, html)} placeholder="Write the text for this part of the page…" />;
       case 'image':
         return <ImageField value={value} onChange={(url) => set(field.key, url)} supabase={supabase} />;
+      case 'essay':
+        return (
+          <RichEditor
+            variant="essay"
+            value={value}
+            onChange={(html) => set(field.key, html)}
+            onUploadImage={(file) => uploadPageImage(supabase, file)}
+          />
+        );
       case 'list':
         return <ListEditor field={field} value={value} onChange={(json) => set(field.key, json)} supabase={supabase} />;
       case 'chart':

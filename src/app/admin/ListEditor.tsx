@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 import { parseList, type ListItem, type PageField } from '@/content/pages';
-import { ImageField, positionPercent } from './PageFieldInputs';
+import { ImageField, positionPercent, uploadPageImage } from './PageFieldInputs';
 import admin from './page.module.css';
 import styles from './ListEditor.module.css';
 
@@ -40,13 +40,13 @@ export default function ListEditor({ field, value, onChange, supabase }: Props) 
   }
 
   function remove(item: ListItem) {
-    if (!confirm(`Remove ${item.name || `this ${itemName}`} from the page?`)) return;
+    if (!confirm(`Remove ${item.name || item.title || `this ${itemName}`} from the page?`)) return;
     save(items.filter((i) => i.id !== item.id));
   }
 
   function add() {
-    const item: ListItem = { id: newId(), name: '' };
-    for (const f of field.itemFields || []) if (f.key !== 'name') item[f.key] = f.type === 'position' ? 'center' : '';
+    const item: ListItem = { id: newId() };
+    for (const f of field.itemFields || []) item[f.key] = f.type === 'position' ? 'center' : '';
     save([...items, item]);
     setOpen(item.id);
   }
@@ -58,11 +58,11 @@ export default function ListEditor({ field, value, onChange, supabase }: Props) 
         return (
           <div key={item.id} className={`${styles.item} ${isOpen ? styles.itemOpen : ''}`}>
             <div className={styles.itemHead}>
-              {item.image
-                ? <img src={item.image} alt="" className={styles.thumb} />
+              {item.image || item.cardImage
+                ? <img src={item.image || item.cardImage} alt="" className={styles.thumb} />
                 : <span className={styles.thumb} />}
               <button type="button" className={styles.itemTitle} onClick={() => setOpen(isOpen ? null : item.id)}>
-                {item.name || <em>Unnamed {itemName}</em>}
+                {item.name || item.title || <em>Unnamed {itemName}</em>}
               </button>
               <div className={styles.itemActions}>
                 <button type="button" title="Move up" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
@@ -84,6 +84,14 @@ export default function ListEditor({ field, value, onChange, supabase }: Props) 
                       {f.hint && <p className={admin.fieldHint}>{f.hint}</p>}
                       {f.type === 'rich' && (
                         <RichEditor value={v} onChange={(html) => update(item.id, f.key, html)} placeholder="Write here…" />
+                      )}
+                      {f.type === 'essay' && (
+                        <RichEditor
+                          variant="essay"
+                          value={v}
+                          onChange={(html) => update(item.id, f.key, html)}
+                          onUploadImage={(file) => uploadPageImage(supabase, file)}
+                        />
                       )}
                       {f.type === 'image' && (
                         <ImageField value={v} onChange={(url) => update(item.id, f.key, url)} supabase={supabase} />

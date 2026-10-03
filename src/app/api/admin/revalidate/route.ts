@@ -15,5 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unknown page.' }, { status: 400 });
   }
   revalidatePath(path);
+  // Essays live on the Experimental Kitchen page but each has its own page too
+  if (path === '/experimental-kitchen') revalidatePath('/experimental-kitchen/[slug]', 'page');
   return NextResponse.json({ success: true });
 }

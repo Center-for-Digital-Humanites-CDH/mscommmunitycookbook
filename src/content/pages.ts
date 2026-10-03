@@ -1,3 +1,5 @@
+import { ESSAYS, PIPELINE_ESSAY } from './essays';
+
 // Everything on a page that can be edited from the admin "Pages" tab.
 // The default is what the site shows until someone edits it, so nothing changes on deploy.
 
@@ -5,13 +7,14 @@
 // image: a photo · position: which part of a photo shows when it's cropped · number: a whole number
 // chart: a chart edited visually, together with the fields listed in `edits`
 // list: a list of entries (e.g. people) that can be added, removed and reordered
-export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position' | 'number' | 'chart' | 'list';
+// essay: long formatted text with footnote numbers, small headings and pictures with captions
+export type FieldType = 'text' | 'lines' | 'rich' | 'essay' | 'image' | 'position' | 'number' | 'chart' | 'list';
 
 // One input inside each entry of a list field
 export interface ListItemField {
   key: string;
   label: string;
-  type: 'text' | 'lines' | 'rich' | 'image' | 'position';
+  type: 'text' | 'lines' | 'rich' | 'essay' | 'image' | 'position';
   hint?: string;
   aspect?: string;
 }
@@ -532,7 +535,109 @@ const tastedTested: PageDef = {
   ],
 };
 
-export const PAGES: PageDef[] = [home, cookbooks, landscapes, cookery, proofPudding, tastedTested];
+const ESSAY_FIELDS: ListItemField[] = [
+  { key: 'title', label: 'Essay title', type: 'text' },
+  { key: 'subtitle', label: 'Subtitle (optional)', type: 'text' },
+  { key: 'slug', label: 'Web address', type: 'text', hint: 'The end of the essay link, e.g. pecan-pie → /experimental-kitchen/pecan-pie. Use lowercase words and dashes. Changing it breaks links people have shared.' },
+  { key: 'cardImage', label: 'Card photo', type: 'image', hint: 'Shown on the essay card on the Experimental Kitchen page.' },
+  { key: 'cardImageAlt', label: 'Card photo description for screen readers', type: 'text' },
+  { key: 'content', label: 'Essay', type: 'essay', hint: 'Use x² for footnote numbers and H4 for the "Footnotes" heading above a numbered list. 🖼 Picture adds a picture with a caption.' },
+];
+
+const experimentalKitchen: PageDef = {
+  id: 'experimental-kitchen',
+  name: 'Experimental Kitchen',
+  path: '/experimental-kitchen',
+  groups: [
+    hero('Experimental Kitchen', '/images/kitchen-bg.jpeg', 'center 16.75%'),
+    {
+      title: 'Introduction',
+      fields: [
+        {
+          key: 'intro',
+          label: 'Opening text',
+          type: 'rich',
+          default:
+            `<p>The University of Southern Mississippi hosts one of the largest statewide collections of community cookbooks in the United States (at least in proportion to the number of cookbooks published). Over a hundred of those cookbooks have been digitized and are available from Southern Miss' University Libraries.</p>` +
+            `<p>Suwan Aryal, a talented undergraduate computer scientist at Southern Miss, and I have used artificial intelligence to parse and explore these digitized texts.</p>`,
+        },
+      ],
+    },
+    {
+      title: 'Data Collection & Processing Pipeline',
+      fields: [
+        { key: 'pipeline.heading', label: 'Heading', type: 'text', default: 'Data Collection & Processing Pipeline' },
+        {
+          key: 'pipeline.intro',
+          label: 'Text under the heading',
+          type: 'rich',
+          default: `<p>Suwan Aryal developed a sophisticated pipeline to extract and process recipes from digitized cookbooks. Here's a detailed explanation of the process:</p>`,
+        },
+        { key: 'pipeline.button', label: 'Label on the button that opens the essay', type: 'text', default: 'Read Full Data Collection & Processing Pipeline Essay' },
+        { key: 'pipeline.essay', label: 'The pipeline essay', type: 'essay', default: PIPELINE_ESSAY },
+      ],
+    },
+    {
+      title: 'Research Findings & Analysis',
+      fields: [
+        { key: 'findings.heading', label: 'Heading', type: 'text', default: 'Research Findings & Analysis' },
+        {
+          key: 'findings.intro',
+          label: 'Text above the essay cards',
+          type: 'rich',
+          default: `<p>The combined JSON database has proven invaluable for analyzing different culinary trends and patterns across Mississippi's community cookbook history. Select any essay below to read the full analysis. The Pecan Pie series is a three-part deep dive into America's most debated dessert.</p>`,
+        },
+        {
+          key: 'essays',
+          label: 'Essays',
+          type: 'list',
+          itemName: 'essay',
+          itemFields: ESSAY_FIELDS,
+          default: JSON.stringify(ESSAYS.map(({ id, ...essay }) => ({ id, slug: id, ...essay }))),
+          hint: 'Each essay gets its own page and a card on the Experimental Kitchen page.',
+        },
+      ],
+    },
+  ],
+};
+
+const culinaryTales: PageDef = {
+  id: 'culinary-tales',
+  name: 'Culinary Tales',
+  path: '/culinary-tales',
+  groups: [
+    hero('Culinary Tales', '/images/tales-bg.jpeg', 'center 10%'),
+    {
+      title: 'Introduction',
+      fields: [
+        {
+          key: 'intro',
+          label: 'Text above the blog posts',
+          type: 'lines',
+          default: 'Cookbooks tell stories. The best of these, if all goes according to plan, will appear in my forthcoming book on community cookbooks. However, I am constantly finding stories that I would love to share and when I have time I will add some to the blog.',
+        },
+        { key: 'recentHeading', label: 'Heading above the newest posts', type: 'text', default: 'Recent Stories' },
+        { key: 'pastHeading', label: 'Heading above older posts', type: 'text', default: 'Past Stories' },
+      ],
+    },
+    {
+      title: 'When there are no posts yet',
+      fields: [
+        { key: 'empty.heading', label: 'Heading', type: 'text', default: 'Stories Coming Soon' },
+        {
+          key: 'empty.text',
+          label: 'Text',
+          type: 'rich',
+          default:
+            `<p>Dr. Andrew Haley is currently preparing fascinating culinary tales from the Mississippi Community Cookbook Project archives.</p>` +
+            `<p>Check back regularly, or <a href="/cookbooks">explore our cookbook collection</a> while you wait.</p>`,
+        },
+      ],
+    },
+  ],
+};
+
+export const PAGES: PageDef[] = [home, cookbooks, landscapes, experimentalKitchen, cookery, proofPudding, culinaryTales, tastedTested];
 
 export function getPageDef(id: string) {
   return PAGES.find((p) => p.id === id);
