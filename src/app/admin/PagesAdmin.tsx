@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 import { PAGES, pageDefaults, type PageDef, type PageField } from '@/content/pages';
+import type { CookbookRow } from '@/lib/landscapeStats';
+import ChartEditor from './ChartEditor';
 import admin from './page.module.css';
 import styles from './PagesAdmin.module.css';
 
@@ -88,8 +90,10 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
+  const [cookbookRows, setCookbookRows] = useState<CookbookRow[] | null>(null);
 
   const defaults = pageDefaults(page);
+  const hasCharts = page.groups.some((g) => g.fields.some((f) => f.type === 'chart'));
   const changedKeys = Object.keys(values).filter((k) => values[k] !== saved[k]);
   const dirty = changedKeys.length > 0;
 
@@ -112,6 +116,12 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
       applyRows(page, data);
     });
   }, [page, fetchPage]);
+
+  // Charts count from the cookbook list, so load it once when a page with charts is opened
+  useEffect(() => {
+    if (!hasCharts || cookbookRows) return;
+    supabase.from('cookbooks').select('date, organization, county').then(({ data }) => setCookbookRows(data || []));
+  }, [hasCharts, cookbookRows, supabase]);
 
   useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
@@ -176,6 +186,8 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
         return <RichEditor value={value} onChange={(html) => set(field.key, html)} placeholder="Write the text for this part of the page…" />;
       case 'image':
         return <ImageField value={value} onChange={(url) => set(field.key, url)} supabase={supabase} />;
+      case 'chart':
+        return <ChartEditor kind={field.chart!} numbersKey={field.key} values={values} set={set} rows={cookbookRows} />;
       case 'lines':
         return <textarea rows={3} value={value} onChange={(e) => set(field.key, e.target.value)} />;
       case 'number':
@@ -252,8 +264,9 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
           {page.groups.map((group) => (
             <section key={group.title} className={styles.group}>
               <h4 className={styles.groupTitle}>{group.title}</h4>
-              {group.fields.map((field) => {
-                const edited = values[field.key] !== defaults[field.key];
+              {group.fields.filter((f) => !f.hidden).map((field) => {
+                const keys = field.edits ?? [field.key];
+                const edited = keys.some((k) => values[k] !== defaults[k]);
                 return (
                   <div key={field.key} className={styles.field}>
                     <div className={styles.fieldHead}>
@@ -264,7 +277,10 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
                           <button
                             type="button"
                             className={styles.resetBtn}
-                            onClick={() => confirm('Put back the original version of this field?') && set(field.key, defaults[field.key])}
+                            onClick={() => {
+                              if (!confirm(`Put back the original version of ${field.type === 'chart' ? 'this chart' : 'this field'}?`)) return;
+                              setValues((prev) => ({ ...prev, ...Object.fromEntries(keys.map((k) => [k, defaults[k]])) }));
+                            }}
                           >
                             Reset to original
                           </button>
