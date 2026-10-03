@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { composeInGmail, copyEmails } from '@/lib/announce';
+import { announcementHtml, composeInGmail, copyEmails, type AnnouncePost } from '@/lib/announce';
 import styles from './SubscribersAdmin.module.css';
 
 interface Subscriber {
@@ -12,11 +12,8 @@ interface Subscriber {
   active: boolean;
 }
 
-interface PostOption {
+interface PostOption extends AnnouncePost {
   id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
 }
 
 export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClient }) {
@@ -27,6 +24,7 @@ export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClien
   const [filter, setFilter] = useState<'all' | 'active' | 'inactive'>('active');
   const [newEmail, setNewEmail] = useState('');
   const [msg, setMsg] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
   const [loading, setLoading] = useState(true);
 
   async function api(method: string, body?: object) {
@@ -55,7 +53,7 @@ export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClien
     load();
     supabase
       .from('posts')
-      .select('id, title, slug, excerpt')
+      .select('id, title, slug, excerpt, background_image, author, date, category')
       .eq('published', true)
       .order('date', { ascending: false })
       .then(({ data }) => {
@@ -71,9 +69,10 @@ export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClien
 
   function flash(text: string) {
     setMsg(text);
-    setTimeout(() => setMsg(''), 4000);
+    setTimeout(() => setMsg(''), 8000);
   }
 
+  const selectedPost = posts.find((p) => p.id === postId);
   const activeEmails = subscribers.filter((s) => s.active).map((s) => s.email);
   const filtered = subscribers.filter((s) => {
     if (filter === 'active' && !s.active) return false;
@@ -160,16 +159,22 @@ export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClien
       <div className={styles.card}>
         <h4>Announce a new post</h4>
         <p className={styles.hint}>
-          Opens Gmail with every active subscriber in Bcc (they can&rsquo;t see each other&rsquo;s addresses),
-          plus a subject and message linking to the post. Review it, then press Send.
+          Copies a designed email for the post and opens Gmail with every active subscriber in Bcc
+          (they can&rsquo;t see each other&rsquo;s addresses). Click in the message, press Ctrl+V, review, then Send.
         </p>
         <div className={styles.row}>
           <select value={postId} onChange={(e) => setPostId(e.target.value)} className={styles.select}>
             {posts.length === 0 && <option value="">No published posts</option>}
             {posts.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
           </select>
+          <button onClick={() => setShowPreview((v) => !v)} className={styles.secondaryBtn}>
+            {showPreview ? 'Hide preview' : 'Preview email'}
+          </button>
           <button onClick={announce} className={styles.primaryBtn}>Compose in Gmail</button>
         </div>
+        {showPreview && selectedPost && (
+          <iframe title="Email preview" srcDoc={announcementHtml(selectedPost)} className={styles.preview} />
+        )}
       </div>
 
       <div className={styles.toolbar}>

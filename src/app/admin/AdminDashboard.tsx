@@ -197,7 +197,15 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     if (!editing?.slug || !editing.title) return;
     if (!subscriberEmails.length) return setAnnounceMsg('Error: There are no active subscribers yet.');
     setAnnounceMsg(await composeInGmail(
-      { title: editing.title, slug: editing.slug, excerpt: editing.excerpt || '' },
+      {
+        title: editing.title,
+        slug: editing.slug,
+        excerpt: editing.excerpt || '',
+        background_image: editing.background_image,
+        author: editing.author,
+        date: editing.date,
+        category: editing.category,
+      },
       subscriberEmails,
     ));
   }
@@ -286,7 +294,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
               <h3>Announce to Subscribers</h3>
               <p className={styles.fieldHint}>
                 {isLive
-                  ? `Opens Gmail with all ${subscriberEmails.length} active subscriber${subscriberEmails.length === 1 ? '' : 's'} in Bcc and a message linking to this post. Review it, then press Send.`
+                  ? `Copies a designed email for this post and opens Gmail with all ${subscriberEmails.length} active subscriber${subscriberEmails.length === 1 ? '' : 's'} in Bcc. Press Ctrl+V in the message, review, then Send.`
                   : 'Save this post as Published first, then you can announce it to subscribers.'}
               </p>
               {announceMsg && <p className={announceMsg.startsWith('Error') ? styles.error : styles.success}>{announceMsg}</p>}
