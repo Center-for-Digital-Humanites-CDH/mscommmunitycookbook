@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 import type { RichEditorHandle } from './RichEditor';
-import { composeInGmail, copyEmails, fetchActiveEmails } from '@/lib/announce';
+import { composeInGmail, copyEmails } from '@/lib/announce';
 import styles from './page.module.css';
 
 const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
@@ -52,8 +52,8 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   const editorRef = useRef<RichEditorHandle>(null);
   const [heroUploading, setHeroUploading] = useState(false);
   const [heroUploadMsg, setHeroUploadMsg] = useState('');
-  const [subscriberEmails, setSubscriberEmails] = useState<string[]>([]);
   const [announceMsg, setAnnounceMsg] = useState('');
+  const [manualBcc, setManualBcc] = useState<string[] | null>(null);
 
   async function loadPosts() {
     const { data } = await supabase
@@ -63,17 +63,14 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     if (data) setPosts(data);
   }
 
-  useEffect(() => {
-    loadPosts();
-    // Loaded up front so "Compose in Gmail" can open the tab without being blocked as a popup
-    fetchActiveEmails(supabase).then(setSubscriberEmails).catch(() => {});
-  }, []);
+  useEffect(() => { loadPosts(); }, []);
 
   function newPost() {
     setEditing({ ...EMPTY });
     setView('editor');
     setUploadMsg('');
     setAnnounceMsg('');
+    setManualBcc(null);
   }
 
   function editPost(post: Post) {
@@ -81,6 +78,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     setView('editor');
     setUploadMsg('');
     setAnnounceMsg('');
+    setManualBcc(null);
   }
 
   function autoSlug(title: string) {
@@ -195,9 +193,9 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
 
   async function announce() {
     if (!editing?.slug || !editing.title) return;
-    if (!subscriberEmails.length) return setAnnounceMsg('Error: There are no active subscribers yet.');
-    setAnnounceMsg(await composeInGmail(
-      {
+    setManualBcc(null);
+    try {
+      const result = await composeInGmail({
         title: editing.title,
         slug: editing.slug,
         excerpt: editing.excerpt || '',
@@ -205,15 +203,18 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
         author: editing.author,
         date: editing.date,
         category: editing.category,
-      },
-      subscriberEmails,
-    ));
+      }, supabase);
+      setAnnounceMsg(result.note);
+      setManualBcc(result.manualBcc ?? null);
+    } catch (err) {
+      setAnnounceMsg('Error: ' + (err as Error).message);
+    }
   }
 
-  async function copySubscriberEmails() {
-    if (!subscriberEmails.length) return setAnnounceMsg('Error: There are no active subscribers yet.');
-    await copyEmails(subscriberEmails);
-    setAnnounceMsg(`✓ Copied ${subscriberEmails.length} email${subscriberEmails.length === 1 ? '' : 's'}`);
+  async function copyBcc() {
+    if (!manualBcc) return;
+    await copyEmails(manualBcc);
+    setAnnounceMsg(`✓ Copied ${manualBcc.length} emails. Paste them into Bcc in Gmail.`);
   }
 
   async function deletePost(id: string) {
@@ -294,14 +295,14 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
               <h3>Announce to Subscribers</h3>
               <p className={styles.fieldHint}>
                 {isLive
-                  ? `Copies a designed email for this post and opens Gmail with all ${subscriberEmails.length} active subscriber${subscriberEmails.length === 1 ? '' : 's'} in Bcc. Press Ctrl+V in the message, review, then Send.`
+                  ? 'Copies a designed email for this post and opens Gmail with every current subscriber in Bcc. Press Ctrl+V in the message, review, then Send.'
                   : 'Save this post as Published first, then you can announce it to subscribers.'}
               </p>
               {announceMsg && <p className={announceMsg.startsWith('Error') ? styles.error : styles.success}>{announceMsg}</p>}
               <button onClick={announce} disabled={!isLive} className={styles.saveBtn}>Compose in Gmail</button>
-              <button onClick={copySubscriberEmails} className={styles.backBtn}>
-                Copy subscriber emails
-              </button>
+              {manualBcc && (
+                <button onClick={copyBcc} className={styles.backBtn}>Copy emails for Bcc</button>
+              )}
             </div>
 
             <div className={styles.sideCard}>

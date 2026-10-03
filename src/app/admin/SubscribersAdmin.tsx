@@ -102,10 +102,14 @@ export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClien
   }
 
   async function announce() {
-    const post = posts.find((p) => p.id === postId);
-    if (!post) return flash('Error: Pick a post to announce.');
-    if (!activeEmails.length) return flash('Error: No active subscribers to email.');
-    flash(await composeInGmail(post, activeEmails));
+    if (!selectedPost) return flash('Error: Pick a post to announce.');
+    try {
+      const result = await composeInGmail(selectedPost, supabase);
+      flash(result.note);
+      load();
+    } catch (err) {
+      flash('Error: ' + (err as Error).message);
+    }
   }
 
   async function addSubscriber(e: React.FormEvent) {
@@ -160,7 +164,7 @@ export default function SubscribersAdmin({ supabase }: { supabase: SupabaseClien
         <h4>Announce a new post</h4>
         <p className={styles.hint}>
           Copies a designed email for the post and opens Gmail with every active subscriber in Bcc
-          (they can&rsquo;t see each other&rsquo;s addresses). Click in the message, press Ctrl+V, review, then Send.
+          (they can&rsquo;t see each other&rsquo;s addresses). Click in the message, press Ctrl+V, review, then Send. If the list ever gets too long for Gmail, use &ldquo;Copy active emails&rdquo; below and paste into Bcc.
         </p>
         <div className={styles.row}>
           <select value={postId} onChange={(e) => setPostId(e.target.value)} className={styles.select}>

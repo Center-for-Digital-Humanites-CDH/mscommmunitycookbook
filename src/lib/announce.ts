@@ -115,26 +115,57 @@ function announcementText(post: AnnouncePost) {
   ].join('\n');
 }
 
-// Copies the designed email, then opens a Gmail draft with everyone in Bcc and the subject filled in.
-// Returns a note to show the admin.
-export async function composeInGmail(post: AnnouncePost, emails: string[]): Promise<string> {
-  const html = announcementHtml(post);
-  await navigator.clipboard.write([
+export interface ComposeResult {
+  note: string;
+  // Set when the list is too long for a Gmail link and has to be pasted into Bcc by hand
+  manualBcc?: string[];
+}
+
+// Copies the designed email, pulls the latest subscriber list, then opens a Gmail draft
+// with everyone in Bcc and the subject filled in.
+export async function composeInGmail(post: AnnouncePost, supabase: SupabaseClient): Promise<ComposeResult> {
+  // Start the copy and open the tab straight away, while the click still counts as a user action,
+  // so the browser doesn't block either one. The tab is pointed at Gmail once the list is loaded.
+  const copied = navigator.clipboard.write([
     new ClipboardItem({
-      'text/html': new Blob([html], { type: 'text/html' }),
+      'text/html': new Blob([announcementHtml(post)], { type: 'text/html' }),
       'text/plain': new Blob([announcementText(post)], { type: 'text/plain' }),
     }),
   ]);
+  const tab = window.open('about:blank', '_blank');
+
+  let emails: string[];
+  try {
+    await copied;
+    emails = await fetchActiveEmails(supabase);
+  } catch (err) {
+    tab?.close();
+    throw err;
+  }
+  if (!emails.length) {
+    tab?.close();
+    throw new Error('There are no active subscribers yet.');
+  }
 
   const bcc = emails.join(',');
   const tooLong = bcc.length > MAX_BCC_LENGTH;
   const params = new URLSearchParams({ view: 'cm', fs: '1', su: `New on Culinary Tales: ${post.title}` });
   if (GMAIL_ACCOUNT) params.set('authuser', GMAIL_ACCOUNT);
   if (!tooLong) params.set('bcc', bcc);
-  window.open(`https://mail.google.com/mail/?${params}`, '_blank', 'noopener');
-
-  if (tooLong) {
-    return `The email design is copied. The list is too long for the link, so use "Copy active emails" and paste them into Bcc, then click in the message and press Ctrl+V.`;
+  const url = `https://mail.google.com/mail/?${params}`;
+  if (tab) {
+    tab.opener = null;
+    tab.location.href = url;
+  } else {
+    window.open(url, '_blank', 'noopener');
   }
-  return `Gmail opened with ${emails.length} subscriber${emails.length === 1 ? '' : 's'} in Bcc. Click in the message box and press Ctrl+V to paste the designed email, then Send.`;
+
+  const people = `${emails.length} subscriber${emails.length === 1 ? '' : 's'}`;
+  if (tooLong) {
+    return {
+      note: `Gmail opened. Click in the message and press Ctrl+V for the design. The list of ${people} is too long for the link, so click "Copy emails for Bcc" below and paste them into Bcc.`,
+      manualBcc: emails,
+    };
+  }
+  return { note: `Gmail opened with all ${people} in Bcc. Click in the message box, press Ctrl+V to paste the designed email, then Send.` };
 }
