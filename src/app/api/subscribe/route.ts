@@ -15,12 +15,21 @@ export async function POST(request: Request) {
     }
 
     const db = supabaseAdmin();
+    const normalized = email.toLowerCase().trim();
     const { error } = await db
       .from('subscribers')
-      .insert({ email: email.toLowerCase().trim() });
+      .insert({ email: normalized });
 
     if (error) {
       if (error.code === '23505') {
+        // Re-activate someone who previously unsubscribed
+        const { data: reactivated } = await db
+          .from('subscribers')
+          .update({ active: true })
+          .eq('email', normalized)
+          .eq('active', false)
+          .select('id');
+        if (reactivated?.length) return NextResponse.json({ success: true });
         return NextResponse.json({ error: 'This email is already subscribed.' }, { status: 409 });
       }
       throw error;
