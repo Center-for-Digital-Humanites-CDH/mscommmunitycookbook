@@ -6,7 +6,8 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
-import { useEffect, useImperativeHandle, forwardRef } from 'react';
+import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
+import { essayExtensions } from './essayExtensions';
 import styles from './RichEditor.module.css';
 
 export interface RichEditorHandle {
@@ -18,11 +19,26 @@ interface Props {
   value: string;
   onChange: (html: string) => void;
   placeholder?: string;
+  // 'essay' adds footnote numbers, small headings and pictures with captions
+  variant?: 'post' | 'essay';
+  // Needed for the essay image button: uploads a photo and returns its address
+  onUploadImage?: (file: File) => Promise<string>;
 }
 
-const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, placeholder }, ref) => {
+const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, placeholder, variant = 'post', onUploadImage }, ref) => {
+  const essay = variant === 'essay';
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const editor = useEditor({
-    extensions: [
+    extensions: essay
+      ? [
+          StarterKit.configure({ heading: { levels: [2, 3, 4] }, link: false, underline: false }),
+          Underline,
+          Link.configure({ openOnClick: false, HTMLAttributes: { rel: 'noopener noreferrer' } }),
+          ...essayExtensions,
+          Placeholder.configure({ placeholder: placeholder || 'Write the essay here…' }),
+        ]
+      : [
       StarterKit.configure({
         heading: { levels: [2, 3] },
       }),
@@ -73,6 +89,20 @@ const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, place
     }
   }
 
+  async function insertPicture(file: File | undefined) {
+    if (!file || !onUploadImage || !editor) return;
+    setUploading(true);
+    try {
+      const src = await onUploadImage(file);
+      const caption = window.prompt('Caption under the picture (optional):', '') || null;
+      editor.chain().focus().insertContent({ type: 'image', attrs: { src, alt: caption || '', caption } }).run();
+    } catch (err) {
+      alert((err as Error).message);
+    }
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = '';
+  }
+
   if (!editor) return null;
 
   const btn = (active: boolean) =>
@@ -98,6 +128,11 @@ const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, place
         <button type="button" title="Heading 3" className={btn(editor.isActive('heading', { level: 3 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
           H3
         </button>
+        {essay && (
+          <button type="button" title="Small heading (e.g. Footnotes)" className={btn(editor.isActive('heading', { level: 4 }))} onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}>
+            H4
+          </button>
+        )}
 
         <div className={styles.divider} />
 
@@ -111,6 +146,11 @@ const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, place
         <button type="button" title="Underline" className={btn(editor.isActive('underline'))} onClick={() => editor.chain().focus().toggleUnderline().run()}>
           <span style={{ textDecoration: 'underline' }}>U</span>
         </button>
+        {essay && (
+          <button type="button" title="Footnote number (superscript)" className={btn(editor.isActive('superscript'))} onClick={() => editor.chain().focus().toggleSuperscript().run()}>
+            x²
+          </button>
+        )}
 
         <div className={styles.divider} />
 
@@ -142,6 +182,16 @@ const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, place
           <button type="button" title="Remove link" className={styles.toolBtn} onClick={() => editor.chain().focus().unsetLink().run()}>
             ✂
           </button>
+        )}
+
+        {essay && onUploadImage && (
+          <>
+            <div className={styles.divider} />
+            <button type="button" title="Insert a picture with a caption" className={styles.toolBtn} disabled={uploading} onClick={() => fileRef.current?.click()}>
+              {uploading ? 'Uploading…' : '🖼 Picture'}
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => insertPicture(e.target.files?.[0])} />
+          </>
         )}
       </div>
 
