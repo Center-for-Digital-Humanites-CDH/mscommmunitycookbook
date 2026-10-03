@@ -203,6 +203,12 @@
 
 .field > textarea { resize: vertical; line-height: 1.5; }
 
+.field > .numberInput {
+  max-width: 160px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
 .sliderRow {
   display: flex;
   align-items: center;

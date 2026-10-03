@@ -178,6 +178,16 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
         return <ImageField value={value} onChange={(url) => set(field.key, url)} supabase={supabase} />;
       case 'lines':
         return <textarea rows={3} value={value} onChange={(e) => set(field.key, e.target.value)} />;
+      case 'number':
+        return (
+          <input
+            type="number"
+            min={0}
+            className={styles.numberInput}
+            value={value}
+            onChange={(e) => set(field.key, e.target.value.replace(/[^0-9]/g, ''))}
+          />
+        );
       case 'position': {
         // The photo and label this position belongs to, e.g. hero.position → hero.image / hero.title
         const base = field.key.replace(/position$/, '');

@@ -12,29 +12,40 @@ const ITEMS_PER_PAGE = 12;
 
 type Filter = 'all' | 'high' | 'medium' | 'low' | 'none';
 
-function getTier(count: number): Filter {
-  if (count >= 10) return 'high';
-  if (count >= 3) return 'medium';
-  if (count >= 1) return 'low';
-  return 'none';
+// Production levels and wording, set from the admin Pages tab
+export interface CountyLevels {
+  high: number;
+  medium: number;
+  highLabel: string;
+  mediumLabel: string;
+  lowLabel: string;
+  noneLabel: string;
+  heading: string;
+  intro: string;
 }
 
-export default function CountyGrid({ counties }: { counties: County[] }) {
+export default function CountyGrid({ counties, levels }: { counties: County[]; levels: CountyLevels }) {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
   const [page, setPage] = useState(1);
 
-  const high  = useMemo(() => counties.filter((c) => c.count >= 10).length, [counties]);
-  const medium = useMemo(() => counties.filter((c) => c.count >= 3 && c.count <= 9).length, [counties]);
-  const low   = useMemo(() => counties.filter((c) => c.count >= 1 && c.count <= 2).length, [counties]);
-  const none  = useMemo(() => counties.filter((c) => c.count === 0).length, [counties]);
+  const { high, medium } = levels;
+  const getTier = useMemo(() => (count: number): Filter => {
+    if (count >= high) return 'high';
+    if (count >= medium) return 'medium';
+    if (count >= 1) return 'low';
+    return 'none';
+  }, [high, medium]);
+
+  const none = useMemo(() => counties.filter((c) => c.count === 0).length, [counties]);
+  const range = (from: number, to: number) => (from === to ? `${from}` : `${from}–${to}`);
 
   const filterLabels: { key: Filter; label: string }[] = [
     { key: 'all',    label: `All Counties (${counties.length})` },
-    { key: 'high',   label: `High Production (10+)` },
-    { key: 'medium', label: `Medium Production (3–9)` },
-    { key: 'low',    label: `Low Production (1–2)` },
-    { key: 'none',   label: `No Cookbooks (${none})` },
+    { key: 'high',   label: `${levels.highLabel} (${high}+)` },
+    { key: 'medium', label: `${levels.mediumLabel} (${range(medium, high - 1)})` },
+    { key: 'low',    label: `${levels.lowLabel} (${range(1, medium - 1)})` },
+    { key: 'none',   label: `${levels.noneLabel} (${none})` },
   ];
 
   const filtered = useMemo(() => {
@@ -45,7 +56,7 @@ export default function CountyGrid({ counties }: { counties: County[] }) {
       result = result.filter((c) => getTier(c.count) === filter);
     }
     return result;
-  }, [counties, search, filter]);
+  }, [counties, search, filter, getTier]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const pageData = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -71,11 +82,8 @@ export default function CountyGrid({ counties }: { counties: County[] }) {
 
   return (
     <div className={styles.root}>
-      <h4 className={styles.heading}>Complete County Inventory</h4>
-      <p className={styles.intro}>
-        Explore cookbook production across all 82 Mississippi counties. Use the search to find specific
-        counties, or click the category buttons to filter by production level.
-      </p>
+      <h4 className={styles.heading}>{levels.heading}</h4>
+      <p className={styles.intro}>{levels.intro}</p>
 
       <div className={styles.filterRow}>
         {filterLabels.map(({ key, label }) => (
