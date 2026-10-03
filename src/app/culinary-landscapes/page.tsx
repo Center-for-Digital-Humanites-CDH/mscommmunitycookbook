@@ -3,6 +3,18 @@ import PageHero from '@/components/PageHero';
 import CountyGrid from '@/components/CountyGrid';
 import { supabaseAdmin } from '@/lib/supabase';
 import { getPageContent } from '@/lib/pageContent';
+import {
+  MS_COUNTIES,
+  ORG_TYPES,
+  countCounties,
+  countDecades,
+  countOrgs,
+  decadeRange,
+  parseChartNumbers,
+  toNumber,
+  topCounties,
+  type CookbookRow,
+} from '@/lib/landscapeStats';
 import styles from './page.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -11,67 +23,37 @@ export const metadata: Metadata = {
   title: 'Culinary Landscapes — Mississippi Community Cookbook Project',
 };
 
-const MS_COUNTIES = [
-  'Adams','Alcorn','Amite','Attala','Benton','Bolivar','Calhoun','Carroll',
-  'Chickasaw','Choctaw','Claiborne','Clarke','Clay','Coahoma','Copiah',
-  'Covington','DeSoto','Forrest','Franklin','George','Greene','Grenada',
-  'Hancock','Harrison','Hinds','Holmes','Humphreys','Issaquena','Itawamba',
-  'Jackson','Jasper','Jefferson','Jefferson Davis','Jones','Kemper','Lafayette',
-  'Lamar','Lauderdale','Lawrence','Leake','Lee','Leflore','Lincoln','Lowndes',
-  'Madison','Marion','Marshall','Monroe','Montgomery','Neshoba','Newton',
-  'Noxubee','Oktibbeha','Panola','Pearl River','Perry','Pike','Pontotoc',
-  'Prentiss','Quitman','Rankin','Scott','Sharkey','Simpson','Smith','Stone',
-  'Sunflower','Tallahatchie','Tate','Tippah','Tishomingo','Tunica','Union',
-  'Walthall','Warren','Washington','Wayne','Webster','Wilkinson','Winston',
-  'Yalobusha','Yazoo',
-];
-
-function num(value: string, fallback: number) {
-  const n = parseInt(value);
-  return isNaN(n) ? fallback : n;
-}
-
 async function getLandscapeData(c: Record<string, string>) {
   const db = supabaseAdmin();
   const { data: cookbookRows } = await db.from('cookbooks').select('date, organization, county');
-  const cookbooks = cookbookRows || [];
+  const cookbooks: CookbookRow[] = cookbookRows || [];
 
   // ── Publishers (numbers entered in the admin) ──
-  const publisherLocal = num(c['publishers.local'], 0);
-  const publisherNational = num(c['publishers.national'], 0);
+  const publisherLocal = toNumber(c['publishers.local'], 0);
+  const publisherNational = toNumber(c['publishers.national'], 0);
   const publisherTotal = publisherLocal + publisherNational;
   const publisherLocalPct = publisherTotal > 0 ? ((publisherLocal / publisherTotal) * 100).toFixed(1) : '0.0';
   const publisherNationalPct = publisherTotal > 0 ? ((publisherNational / publisherTotal) * 100).toFixed(1) : '0.0';
 
-  // ── Decades ──
-  const firstDecade = Math.floor(num(c['decades.first'], 1890) / 10) * 10;
-  const lastDecade = Math.max(firstDecade, Math.floor(num(c['decades.last'], 1960) / 10) * 10);
-  const decadeCounts: Record<string, number> = {};
-  cookbooks.forEach((cb) => {
-    const year = parseInt(cb.date);
-    if (!isNaN(year) && year >= firstDecade && year < lastDecade + 10) {
-      const decade = `${Math.floor(year / 10) * 10}s`;
-      decadeCounts[decade] = (decadeCounts[decade] || 0) + 1;
-    }
-  });
-  const decades = [];
-  for (let d = firstDecade; d <= lastDecade; d += 10) {
-    decades.push({ decade: `${d}s`, count: decadeCounts[`${d}s`] || 0 });
-  }
+  // ── Decades: counted from the cookbooks, or typed in the admin ──
+  const decadeNumbers = parseChartNumbers(c['decades.numbers']);
+  const decadeList = decadeRange(c['decades.first'], c['decades.last']);
+  const decadeCounts = countDecades(cookbooks, decadeList);
+  const decades = decadeList.map((d) => ({
+    decade: d,
+    count: decadeNumbers.mode === 'manual' ? (decadeNumbers.values[d] ?? decadeCounts[d]) : decadeCounts[d],
+  }));
   const totalDecades = decades.reduce((s, d) => s + d.count, 0);
 
   // ── Organizations ──
-  const orgCounts: Record<string, number> = {};
-  cookbooks.forEach((cb) => {
-    if (cb.organization) orgCounts[cb.organization] = (orgCounts[cb.organization] || 0) + 1;
-  });
-  const rawOrgs = [
-    { label: c['orgs.civic'], key: 'Civic/Club', variant: 'civic' },
-    { label: c['orgs.church'], key: 'Church', variant: 'church' },
-    { label: c['orgs.business'], key: 'Business/Professional', variant: 'business' },
-    { label: c['orgs.extension'], key: 'Extension', variant: 'extension' },
-  ]
-    .map((o) => ({ ...o, count: orgCounts[o.key] || 0 }))
+  const orgNumbers = parseChartNumbers(c['orgs.numbers']);
+  const orgCounts = countOrgs(cookbooks);
+  const rawOrgs = ORG_TYPES
+    .map((o) => ({
+      label: c[o.labelKey],
+      variant: o.variant,
+      count: orgNumbers.mode === 'manual' ? (orgNumbers.values[o.variant] ?? orgCounts[o.variant]) : orgCounts[o.variant],
+    }))
     .filter((o) => o.count > 0)
     .sort((a, b) => b.count - a.count);
   const totalOrgs = rawOrgs.reduce((s, o) => s + o.count, 0);
@@ -85,37 +67,28 @@ async function getLandscapeData(c: Record<string, string>) {
   }));
 
   // ── Counties ──
-  const countyCounts: Record<string, number> = {};
-  cookbooks.forEach((cb) => {
-    const raw = cb.county?.trim();
-    if (!raw) return;
-    const name = raw.replace(/\s+county$/i, '');
-    countyCounts[name] = (countyCounts[name] || 0) + 1;
-  });
+  const countyCounts = countCounties(cookbooks);
 
   // Build full 82-county list — DB counts merged with complete MS county list
   const allCounties = MS_COUNTIES
     .map((name) => ({ name: `${name} County`, count: countyCounts[name] || 0 }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-  const countyEntries = Object.entries(countyCounts).sort((a, b) => b[1] - a[1]);
-  const topCounties = countyEntries.slice(0, 10).map(([name, count]) => ({
-    name: `${name} County`,
-    count,
-  }));
-  const maxCounty = topCounties[0]?.count || 1;
+  const topNumbers = parseChartNumbers(c['counties.topNumbers']);
+  const topCountyList = topNumbers.mode === 'manual' ? topNumbers.rows : topCounties(countyCounts);
+  const maxCounty = Math.max(1, ...topCountyList.map((cc) => cc.count));
 
-  const highFrom = Math.max(2, num(c['counties.high'], 10));
-  const mediumFrom = Math.min(highFrom - 1, Math.max(2, num(c['counties.medium'], 3)));
+  const highFrom = Math.max(2, toNumber(c['counties.high'], 10));
+  const mediumFrom = Math.min(highFrom - 1, Math.max(2, toNumber(c['counties.medium'], 3)));
   const high = allCounties.filter((cc) => cc.count >= highFrom).length;
   const medium = allCounties.filter((cc) => cc.count >= mediumFrom && cc.count < highFrom).length;
   const low = allCounties.filter((cc) => cc.count >= 1 && cc.count < mediumFrom).length;
   const none = allCounties.filter((cc) => cc.count === 0).length;
-  const totalCounty = countyEntries.reduce((s, [, v]) => s + v, 0);
-  const countiesWithData = countyEntries.length;
+  const totalCounty = Object.values(countyCounts).reduce((s, v) => s + v, 0);
+  const countiesWithData = Object.keys(countyCounts).length;
 
   return {
-    decades, totalDecades, orgs, totalOrgs, topCounties, maxCounty,
+    decades, totalDecades, orgs, totalOrgs, topCounties: topCountyList, maxCounty,
     high, medium, low, none, highFrom, mediumFrom, totalCounty, countiesWithData, allCounties,
     publisherLocal, publisherNational, publisherTotal, publisherLocalPct, publisherNationalPct,
   };

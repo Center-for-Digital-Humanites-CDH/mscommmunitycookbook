@@ -3,7 +3,10 @@
 
 // text: one line · lines: a few lines, each shown on its own line · rich: formatted paragraphs
 // image: a photo · position: which part of a photo shows when it's cropped · number: a whole number
-export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position' | 'number';
+// chart: a chart edited visually, together with the fields listed in `edits`
+export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position' | 'number' | 'chart';
+
+export type ChartKind = 'decades' | 'publishers' | 'orgs' | 'topCounties';
 
 export interface PageField {
   key: string;
@@ -13,7 +16,14 @@ export interface PageField {
   hint?: string;
   // For position fields: the shape of the crop, e.g. '16 / 6'
   aspect?: string;
+  // For chart fields: which chart, and every field the chart editor changes
+  chart?: ChartKind;
+  edits?: string[];
+  // Edited inside a chart editor instead of on its own
+  hidden?: boolean;
 }
+
+const AUTO_NUMBERS = JSON.stringify({ mode: 'auto', values: {}, rows: [] });
 
 export interface FieldGroup {
   title: string;
@@ -184,9 +194,10 @@ const landscapes: PageDef = {
             `<p>The authors of these cookbooks often did not date their cookbooks, presumably hoping that these cookbooks would be viewed as timeless and could be sold for years. Even the rise of national publishers after World War II did not lead to the regular dating of cookbooks. Just over 160 of the cookbooks included in the following chart included a printed date.</p>` +
             `<p>Previous studies have dated the cookbooks based on their appearance and, especially for nationally produced cookbooks, this technique is not without merit. However, given the importance of demonstrating change over time for this study, I researched undated cookbooks. Using contributors' names, advertisers, and newspaper references I have dated most of these cookbooks or, at least, have narrowed the possible date so that I can be fairly certain of the decade when it was produced. Nonetheless, the dates below are in some cases estimates and are subject to revision.</p>`,
         },
-        { key: 'decades.chartTitle', label: 'Chart title', type: 'text', default: 'Cookbooks by Decade' },
-        { key: 'decades.first', label: 'First decade shown', type: 'number', default: '1890', hint: 'The bars are counted from the cookbooks list. E.g. 1890 starts the chart at the 1890s.' },
-        { key: 'decades.last', label: 'Last decade shown', type: 'number', default: '1960', hint: 'E.g. 1960 ends the chart at the 1960s.' },
+        { key: 'decades.chartTitle', label: 'Chart title', type: 'text', default: 'Cookbooks by Decade', hidden: true },
+        { key: 'decades.first', label: 'First decade shown', type: 'number', default: '1890', hint: 'The bars are counted from the cookbooks list. E.g. 1890 starts the chart at the 1890s.', hidden: true },
+        { key: 'decades.last', label: 'Last decade shown', type: 'number', default: '1960', hint: 'E.g. 1960 ends the chart at the 1960s.', hidden: true },
+        { key: 'decades.numbers', label: 'The chart', type: 'chart', chart: 'decades', default: AUTO_NUMBERS, edits: ['decades.numbers', 'decades.chartTitle', 'decades.first', 'decades.last'] },
       ],
     },
     {
@@ -201,11 +212,12 @@ const landscapes: PageDef = {
             `<p>Anyone could create a community cookbook. The simplest, often presented as wedding presents, were handwritten cards bound with a ribbon or a metal ring. However, most were more substantial productions. Recipes were collected and organized, advertising was sold to pay for the cost of printing, and a hundred or more copies of the cookbook were printed and sold to raise funds for a charitable endeavor.</p>` +
             `<p>These cookbooks often did not include publication information. If the cookbook was printed locally, the publisher may have viewed the production as a “print job” rather than a book. National publishers, who first emerged at the turn of the twentieth century and rose to prominence in the postwar era, were also initially reluctant to list publication information fearing that it would diminish their local appeal. The following numbers represent both my best guess as to the publisher and recorded publishers.</p>`,
         },
-        { key: 'publishers.chartTitle', label: 'Chart title', type: 'text', default: 'Publisher Distribution' },
-        { key: 'publishers.localLabel', label: 'First group name', type: 'text', default: 'Local Publishers' },
-        { key: 'publishers.local', label: 'First group: number of cookbooks', type: 'number', default: '146', hint: 'Cookbooks printed by a local printer or self-published.' },
-        { key: 'publishers.nationalLabel', label: 'Second group name', type: 'text', default: 'National Publishers' },
-        { key: 'publishers.national', label: 'Second group: number of cookbooks', type: 'number', default: '130', hint: 'Cookbooks printed by a national publishing company.' },
+        { key: 'publishers.chartTitle', label: 'Chart title', type: 'text', default: 'Publisher Distribution', hidden: true },
+        { key: 'publishers.localLabel', label: 'First group name', type: 'text', default: 'Local Publishers', hidden: true },
+        { key: 'publishers.local', label: 'First group: number of cookbooks', type: 'number', default: '146', hint: 'Cookbooks printed by a local printer or self-published.', hidden: true },
+        { key: 'publishers.nationalLabel', label: 'Second group name', type: 'text', default: 'National Publishers', hidden: true },
+        { key: 'publishers.national', label: 'Second group: number of cookbooks', type: 'number', default: '130', hint: 'Cookbooks printed by a national publishing company.', hidden: true },
+        { key: 'publishers.chart', label: 'The chart', type: 'chart', chart: 'publishers', default: '', edits: ['publishers.chartTitle', 'publishers.localLabel', 'publishers.local', 'publishers.nationalLabel', 'publishers.national'] },
       ],
     },
     {
@@ -220,11 +232,12 @@ const landscapes: PageDef = {
             `<p>Some cookbooks were created to forge tighter bonds with a club or community, but most were created to raise funds for charitable endeavors: remodeling a church rectory or repairing the church's roof, creating a cemetery, funding a school trip, raising money for textbooks or scholarships, or supporting local youth initiatives. The following chart classifies the groups that created these cookbooks as churches, civic organizations and clubs, extension service clubs, and professional organizations.</p>` +
             `<p>In the following chart, civic groups, such as a parent-teacher association, and clubs, such as garden or literary club, have been grouped together since their fundraising efforts were similar. Church cookbooks, produced by women's auxiliaries and missionary societies, generally raised funds for church improvements. Mississippi State University's Extension Services were responsible for dozens of community cookbooks. Most were prepared with the help of a county demonstration agent. For a historical overview of Mississippi's home demonstration program, visit the <a href="https://mississippiencyclopedia.org/entries/home-demonstration/" target="_blank" rel="noopener noreferrer">Mississippi Encyclopedia</a>. Finally, professional organizations and businesses also occasionally sponsored cookbooks. The professional organizations raised funds for their own activities while businesses used the cookbook to promote their services. These cookbooks were much more common in the 1970s and the decades that followed.</p>`,
         },
-        { key: 'orgs.chartTitle', label: 'Chart title', type: 'text', default: 'Organization Types' },
-        { key: 'orgs.civic', label: 'Name for "Civic/Club" cookbooks', type: 'text', default: 'Civic & Club Organizations' },
-        { key: 'orgs.church', label: 'Name for "Church" cookbooks', type: 'text', default: 'Church Organizations' },
-        { key: 'orgs.business', label: 'Name for "Business/Professional" cookbooks', type: 'text', default: 'Business & Professional' },
-        { key: 'orgs.extension', label: 'Name for "Extension" cookbooks', type: 'text', default: 'Extension Services' },
+        { key: 'orgs.chartTitle', label: 'Chart title', type: 'text', default: 'Organization Types', hidden: true },
+        { key: 'orgs.civic', label: 'Name for "Civic/Club" cookbooks', type: 'text', default: 'Civic & Club Organizations', hidden: true },
+        { key: 'orgs.church', label: 'Name for "Church" cookbooks', type: 'text', default: 'Church Organizations', hidden: true },
+        { key: 'orgs.business', label: 'Name for "Business/Professional" cookbooks', type: 'text', default: 'Business & Professional', hidden: true },
+        { key: 'orgs.extension', label: 'Name for "Extension" cookbooks', type: 'text', default: 'Extension Services', hidden: true },
+        { key: 'orgs.numbers', label: 'The chart', type: 'chart', chart: 'orgs', default: AUTO_NUMBERS, edits: ['orgs.numbers', 'orgs.chartTitle', 'orgs.civic', 'orgs.church', 'orgs.business', 'orgs.extension'] },
       ],
     },
     {
@@ -245,7 +258,8 @@ const landscapes: PageDef = {
         { key: 'counties.medium', label: 'Counts as medium production from', type: 'number', default: '3', hint: 'E.g. 3 means 3 up to the high number. Anything below is low production.' },
         { key: 'counties.lowLabel', label: 'Name for the quietest counties', type: 'text', default: 'Low Production' },
         { key: 'counties.noneLabel', label: 'Name for counties with none', type: 'text', default: 'No Cookbooks' },
-        { key: 'counties.topTitle', label: 'Top counties chart title', type: 'text', default: 'Top 10 Counties' },
+        { key: 'counties.topTitle', label: 'Top counties chart title', type: 'text', default: 'Top 10 Counties', hidden: true },
+        { key: 'counties.topNumbers', label: 'Top counties chart', type: 'chart', chart: 'topCounties', default: AUTO_NUMBERS, edits: ['counties.topNumbers', 'counties.topTitle'] },
         { key: 'counties.topNote', label: 'Note under the top counties chart', type: 'text', default: 'Future updates will include additional demographic information and maps.' },
         { key: 'counties.gridHeading', label: 'County list heading', type: 'text', default: 'Complete County Inventory' },
         {
