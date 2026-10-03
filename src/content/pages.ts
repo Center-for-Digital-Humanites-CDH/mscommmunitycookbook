@@ -308,7 +308,62 @@ const landscapes: PageDef = {
   ],
 };
 
-export const PAGES: PageDef[] = [home, cookbooks, landscapes];
+const cookery: PageDef = {
+  id: 'cookery',
+  name: 'Cookery',
+  path: '/cookery',
+  groups: [
+    hero('Cookery', '/images/cookery-bg.jpeg', 'center 20%'),
+    {
+      title: 'Opening',
+      fields: [
+        {
+          key: 'intro',
+          label: 'Opening text',
+          type: 'rich',
+          default:
+            `<p>Tentatively titled <em>Kissin Don't Last, Cookery Do</em>, my history of community cookbooks takes a deep dive into community cookbooks in Mississippi in order to better understand how these homespun cookbooks empowered women to shape the places they called home. Community cookbooks funded literary societies, church renovations, parks, school trips, and child welfare programs and, to a degree that is nearly impossible to measure, they provided opportunities for women to address social needs that the political system, still dominated by men in the first two thirds of the twentieth century, ignored.</p>` +
+            `<p>Nearly every cookbook I have researched tells a story.</p>`,
+        },
+      ],
+    },
+    {
+      title: 'First section (photo on the left)',
+      fields: [
+        { key: 'left.image', label: 'Photo', type: 'image', default: '/images/cookbook-belzoni-garden.jpeg' },
+        { key: 'left.caption', label: 'Caption under the photo', type: 'text', default: 'Belzoni Garden Club (Belzoni, Miss.) 1967' },
+        { key: 'left.alt', label: 'Photo description for screen readers', type: 'text', default: 'Belzoni Garden Club Cook Book cover' },
+        {
+          key: 'left.text',
+          label: 'Text beside the photo',
+          type: 'rich',
+          default:
+            `<p>Since the records of charitable spending for the hundreds of groups that created cookbooks in Mississippi are not available, the cookbooks themselves are often (supplemented by local research) the best record we have of women's efforts to shape their communities. In the book, I examine select community cookbooks, less to examine the recipes, than to explore the politics.</p>` +
+            `<p>That is not to say that the recipes do not matter.</p>`,
+        },
+      ],
+    },
+    {
+      title: 'Second section (photo on the right)',
+      fields: [
+        { key: 'right.image', label: 'Photo', type: 'image', default: '/images/cookbook-morehead.jpeg' },
+        { key: 'right.caption', label: 'Caption under the photo', type: 'text', default: 'Ladies of the Home Demonstration Club of Moorhead, Mississippi (Moorhead, Miss.) 1965' },
+        { key: 'right.alt', label: 'Photo description for screen readers', type: 'text', default: 'Ladies of the Home Demonstration Club of Moorhead cookbook cover' },
+        {
+          key: 'right.text',
+          label: 'Text beside the photo',
+          type: 'rich',
+          default:
+            `<p>In the second half of the book, I place these local cookbooks in a national context, examining how the selection of recipes transcended local preferences and demonstrated a remarkable knowledge of national culinary cultures.</p>` +
+            `<p>Not surprisingly, although I do not agree with all the causes these women championed, I have developed considerable respect for the women who gathered to create community cookbooks. They not only mastered the kitchen, but demonstrated their skills as artists, publishers, and businesspeople.</p>` +
+            `<p>As I complete the manuscript, I will share many of its findings in this section of the website. Check back for more!</p>`,
+        },
+      ],
+    },
+  ],
+};
+
+export const PAGES: PageDef[] = [home, cookbooks, landscapes, cookery];
 
 export function getPageDef(id: string) {
   return PAGES.find((p) => p.id === id);
