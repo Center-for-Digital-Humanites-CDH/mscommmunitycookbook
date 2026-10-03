@@ -380,7 +380,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
           className={`${styles.sectionTab} ${section === 'cookbooks' ? styles.sectionTabActive : ''}`}
           onClick={() => switchTo('cookbooks')}
         >
-          Cookbooks
+          Cookbook Inventory
         </button>
         <button
           className={`${styles.sectionTab} ${section === 'landscapes' ? styles.sectionTabActive : ''}`}
