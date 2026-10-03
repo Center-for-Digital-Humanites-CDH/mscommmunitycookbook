@@ -4,7 +4,37 @@
 // text: one line · lines: a few lines, each shown on its own line · rich: formatted paragraphs
 // image: a photo · position: which part of a photo shows when it's cropped · number: a whole number
 // chart: a chart edited visually, together with the fields listed in `edits`
-export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position' | 'number' | 'chart';
+// list: a list of entries (e.g. people) that can be added, removed and reordered
+export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position' | 'number' | 'chart' | 'list';
+
+// One input inside each entry of a list field
+export interface ListItemField {
+  key: string;
+  label: string;
+  type: 'text' | 'lines' | 'rich' | 'image' | 'position';
+  hint?: string;
+  aspect?: string;
+}
+
+export type ListItem = { id: string } & Record<string, string>;
+
+export function parseList(json: string | undefined): ListItem[] {
+  try {
+    const items = JSON.parse(json || '[]');
+    return Array.isArray(items) ? items : [];
+  } catch {
+    return [];
+  }
+}
+
+// "Label | https://link" lines → links
+export function parseLinks(lines: string | undefined) {
+  return (lines || '')
+    .split('\n')
+    .map((line) => line.split('|').map((part) => part.trim()))
+    .filter(([label, href]) => label && href)
+    .map(([label, href]) => ({ label, href }));
+}
 
 export type ChartKind = 'decades' | 'publishers' | 'orgs' | 'topCounties';
 
@@ -21,6 +51,9 @@ export interface PageField {
   edits?: string[];
   // Edited inside a chart editor instead of on its own
   hidden?: boolean;
+  // For list fields: the inputs in each entry, and what to call one entry ("person")
+  itemFields?: ListItemField[];
+  itemName?: string;
 }
 
 const AUTO_NUMBERS = JSON.stringify({ mode: 'auto', values: {}, rows: [] });
@@ -396,7 +429,110 @@ const proofPudding: PageDef = {
   ],
 };
 
-export const PAGES: PageDef[] = [home, cookbooks, landscapes, cookery, proofPudding];
+const PERSON_FIELDS: ListItemField[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'role', label: 'Title or role', type: 'text' },
+  { key: 'institution', label: 'Institution', type: 'text' },
+  { key: 'image', label: 'Photo', type: 'image' },
+  { key: 'imagePosition', label: 'Which part of the photo to show', type: 'position', aspect: '4 / 5' },
+  { key: 'bio', label: 'Bio', type: 'rich' },
+  { key: 'links', label: 'Related links (optional)', type: 'lines', hint: 'One per line, written as: Name of the link | https://address' },
+];
+
+const INSTITUTION_FIELDS: ListItemField[] = [
+  { key: 'name', label: 'Name', type: 'text' },
+  { key: 'image', label: 'Logo or photo', type: 'image' },
+  { key: 'bio', label: 'Description', type: 'rich' },
+  { key: 'links', label: 'Related links (optional)', type: 'lines', hint: 'One per line, written as: Name of the link | https://address' },
+];
+
+const CONTRIBUTORS: ListItem[] = [
+  {
+    id: 'brannock',
+    name: 'Jennifer Brannock',
+    role: 'Curator of Rare Books and Mississippiana',
+    institution: 'The University of Southern Mississippi',
+    image: '/images/jennifer_brannock.png',
+    imagePosition: 'center',
+    bio: `<p>Jennifer Brannock is a Professor and Curator of Rare Books and Mississippiana at the University of Southern Mississippi. She has a BA in Art History and an MSLS from the University of Kentucky. In 2011, Jennifer started collecting Mississippi community cookbooks for Special Collections. With her collaborator, history professor Dr. Andrew P. Haley, she has created the largest collection of Mississippi community cookbooks in the world. Since starting the collection, she has hosted events and programming highlighting the collection and given talks around the world about the cookbook collection found at Southern Miss. In 2020, Jennifer received the Genealogy/History Achievement Award, recognizing her work with the cookbook collection among other achievements.</p>`,
+    links: '',
+  },
+  {
+    id: 'aryal',
+    name: 'Suwan Aryal',
+    role: 'Undergraduate Data Specialist / Mississippi Digital Humanities Hub',
+    institution: 'The University of Southern Mississippi',
+    image: '/images/me.png',
+    imagePosition: 'center 25%',
+    bio:
+      `<p>Suwan Aryal is a senior Honors student majoring in Computer Science at the University of Southern Mississippi. Before college, he completed his Cambridge A-Levels with a focus on science and mathematics. His academic interests include data science, machine learning, and digital humanities.</p>` +
+      `<p>As a student data specialist for the Mississippi Digital Humanities Hub, Suwan has extracted and organized datasets from over 130 community cookbooks, designed an interface for querying data, and developed the project website. He has also gained professional experience through summer internships and looks forward to pursuing honors thesis research at the intersection of data systems and applied machine learning. He is also a Defense Innovation Unit (DIU) Commercialization Fellow, working to build mission-driven solutions that address Department of War (DoW) challenges. Through DIU, he is part of the next generation of national security innovators connecting students, university research, and defense needs to accelerate the development of real-world capabilities.</p>`,
+    links: '',
+  },
+];
+
+const INSTITUTIONS: ListItem[] = [
+  {
+    id: 'usm-libraries',
+    name: 'University Libraries at Southern Miss',
+    image: '/images/Cook Library.jpg',
+    bio: `<p>The Community Cookbook Project is possible because of support from Special Collections and Digital Collections at the University Libraries at The University of Southern Mississippi. Through both donations and sustained collection development, Jennifer Brannock, Curator of the Mississippiana Collection, has helped build a Mississippi community cookbook collection that includes more than 300 cookbooks published before 1970 (featured on this website) and more than a thousand published after 1970. These are part of a larger culinary collection that now includes over 5,000 titles and features manuscript and family cookbooks, published cookbooks from Mississippi and adjacent states, a collection of British community cookbooks, and classic culinary works from around the world. We continue to solicit donations for the collection.</p>`,
+    links: 'Special Collections | https://lib.usm.edu/spcol/\nDigital Collections | https://www.digitalcollections.usm.edu',
+  },
+  {
+    id: 'cdh-mdhh',
+    name: 'The Center for Digital Humanities and the Mississippi Digital Humanities Hub at Southern Miss',
+    image: '/images/MDHH Logo.png',
+    bio: `<p>The first, tentative iteration of the Mississippi Community Cookbook Project was launched with a small grant from the College of Arts &amp; Letters at The University of Southern Mississippi, but at the time Southern Miss provided limited institutional support for digital humanities projects and with the focus was on acquiring new works, the project was absorbed by University Libraries. In 2021, the launch of the Center for Digital Humanities (along with continued research) made it possible to reimagine and create a new Mississippi Community Cookbook Project website. Andrew Haley served as interim director of the center in 2023–24 and now directs the ancillary Mississippi Digital Humanities Hub, a congressionally funded grant managed by the National Historical Publications and Records Commission, that promotes digitization and digital storytelling throughout Mississippi. This website is hosted by the CDH and is possible because of the skills Andrew learned and support he received from the Hub.</p>`,
+    links:
+      'College of Arts & Letters | https://www.usm.edu/arts-sciences/index.php\n' +
+      'Center for Digital Humanities | https://usmcdh.org\n' +
+      'Mississippi Digital Humanities Hub | https://www.ms-digital-hub.com\n' +
+      'National Historical Publications and Records Commission | https://www.archives.gov/nhprc',
+  },
+];
+
+const tastedTested: PageDef = {
+  id: 'tasted-tested',
+  name: 'Tasted and Tested',
+  path: '/tasted-tested',
+  groups: [
+    hero('Tasted and Tested', '/images/tested-bg.jpeg', 'center 20%'),
+    {
+      title: 'Author profile',
+      fields: [
+        { key: 'profile.image', label: 'Photo', type: 'image', default: '/images/andrew.jpeg' },
+        { key: 'profile.name', label: 'Name', type: 'text', default: 'Andrew P. Haley' },
+        { key: 'profile.role', label: 'Title', type: 'text', default: 'Associate Professor of History' },
+        { key: 'profile.institution', label: 'Institution', type: 'text', default: 'The University of Southern Mississippi' },
+        {
+          key: 'profile.bio',
+          label: 'Bio',
+          type: 'rich',
+          default:
+            `<p>Andrew P. Haley is an associate professor of American History and Faculty Ombud at The University of Southern Mississippi, where he studies culture, community, and cuisine in the United States from the Gilded Age through the 1970s. He received his doctorate in History from the University of Pittsburgh. His first book, <em>Turning the Tables: American Restaurant Culture and the Rise of the Middle Class, 1880–1920</em>, argues that changes in restaurant culture demonstrate the growing influence of urban middle-class consumers. It won the 2012 James Beard Award for Scholarship and Reference. He was the Moorman Distinguished Professor of the Humanities 2019–2021 at Southern Miss and is the recipient of various other accolades including a 2001 K. Patricia Cross Award from the American Association for Higher Education.</p>` +
+            `<p>Andrew is currently working on a book and archival project that explores how community cookbooks tell the story of changing dining habits, gender politics, race relations, and American identity in the twentieth-century South.</p>`,
+        },
+      ],
+    },
+    {
+      title: 'Significant Contributors',
+      fields: [
+        { key: 'contributors.heading', label: 'Heading', type: 'text', default: 'Significant Contributors' },
+        { key: 'contributors', label: 'People', type: 'list', itemName: 'person', itemFields: PERSON_FIELDS, default: JSON.stringify(CONTRIBUTORS) },
+      ],
+    },
+    {
+      title: 'Institutional Supporters',
+      fields: [
+        { key: 'institutions.heading', label: 'Heading', type: 'text', default: 'Institutional Supporters' },
+        { key: 'institutions', label: 'Institutions', type: 'list', itemName: 'institution', itemFields: INSTITUTION_FIELDS, default: JSON.stringify(INSTITUTIONS) },
+      ],
+    },
+  ],
+};
+
+export const PAGES: PageDef[] = [home, cookbooks, landscapes, cookery, proofPudding, tastedTested];
 
 export function getPageDef(id: string) {
   return PAGES.find((p) => p.id === id);

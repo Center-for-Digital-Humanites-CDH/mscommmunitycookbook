@@ -169,6 +169,33 @@
   margin-bottom: 0.85rem;
 }
 
+/* Bios edited from the admin Pages tab */
+.profileRich :global(p) {
+  font-size: 1rem;
+  line-height: 1.82;
+  color: var(--text-dark);
+  margin-bottom: 1rem;
+}
+
+.profileRich :global(em),
+.contributorRich :global(em) {
+  font-style: italic;
+  color: var(--primary-color);
+}
+
+.contributorRich :global(p) {
+  font-size: 0.97rem;
+  line-height: 1.75;
+  color: var(--text-dark);
+  margin-bottom: 0.85rem;
+}
+
+.profileRich :global(a),
+.contributorRich :global(a) {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
 .links {
   font-size: 0.92rem;
   line-height: 2;
