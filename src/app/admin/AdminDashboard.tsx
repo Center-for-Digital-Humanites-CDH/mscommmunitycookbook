@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
 import type { RichEditorHandle } from './RichEditor';
+import { composeInGmail, copyEmails, fetchActiveEmails } from '@/lib/announce';
 import styles from './page.module.css';
 
 const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
@@ -51,6 +52,8 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
   const editorRef = useRef<RichEditorHandle>(null);
   const [heroUploading, setHeroUploading] = useState(false);
   const [heroUploadMsg, setHeroUploadMsg] = useState('');
+  const [subscriberEmails, setSubscriberEmails] = useState<string[]>([]);
+  const [announceMsg, setAnnounceMsg] = useState('');
 
   async function loadPosts() {
     const { data } = await supabase
@@ -60,18 +63,24 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     if (data) setPosts(data);
   }
 
-  useEffect(() => { loadPosts(); }, []);
+  useEffect(() => {
+    loadPosts();
+    // Loaded up front so "Compose in Gmail" can open the tab without being blocked as a popup
+    fetchActiveEmails(supabase).then(setSubscriberEmails).catch(() => {});
+  }, []);
 
   function newPost() {
     setEditing({ ...EMPTY });
     setView('editor');
     setUploadMsg('');
+    setAnnounceMsg('');
   }
 
   function editPost(post: Post) {
     setEditing({ ...post });
     setView('editor');
     setUploadMsg('');
+    setAnnounceMsg('');
   }
 
   function autoSlug(title: string) {
@@ -158,20 +167,45 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
     };
 
     let error;
-    if (editing.id) {
-      ({ error } = await supabase.from('posts').update(payload).eq('id', editing.id));
+    let id = editing.id;
+    if (id) {
+      ({ error } = await supabase.from('posts').update(payload).eq('id', id));
     } else {
-      ({ error } = await supabase.from('posts').insert(payload));
+      let inserted;
+      ({ data: inserted, error } = await supabase.from('posts').insert(payload).select('id').single());
+      id = inserted?.id;
     }
 
     setSaving(false);
     if (error) {
       setMsg('Error: ' + error.message);
+    } else if (payload.published) {
+      // Stay in the editor so the professor can announce the post right away
+      setEditing((prev) => ({ ...prev, id }));
+      setMsg('Saved! It will be live on the site within a minute.');
+      await loadPosts();
     } else {
       setMsg('Saved!');
       await loadPosts();
       setTimeout(() => { setMsg(''); setView('list'); }, 1200);
     }
+  }
+
+  const isLive = Boolean(editing?.id && posts.find((p) => p.id === editing.id)?.published);
+
+  async function announce() {
+    if (!editing?.slug || !editing.title) return;
+    if (!subscriberEmails.length) return setAnnounceMsg('Error: There are no active subscribers yet.');
+    setAnnounceMsg(await composeInGmail(
+      { title: editing.title, slug: editing.slug, excerpt: editing.excerpt || '' },
+      subscriberEmails,
+    ));
+  }
+
+  async function copySubscriberEmails() {
+    if (!subscriberEmails.length) return setAnnounceMsg('Error: There are no active subscribers yet.');
+    await copyEmails(subscriberEmails);
+    setAnnounceMsg(`✓ Copied ${subscriberEmails.length} email${subscriberEmails.length === 1 ? '' : 's'}`);
   }
 
   async function deletePost(id: string) {
@@ -249,6 +283,20 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
             </div>
 
             <div className={styles.sideCard}>
+              <h3>Announce to Subscribers</h3>
+              <p className={styles.fieldHint}>
+                {isLive
+                  ? `Opens Gmail with all ${subscriberEmails.length} active subscriber${subscriberEmails.length === 1 ? '' : 's'} in Bcc and a message linking to this post. Review it, then press Send.`
+                  : 'Save this post as Published first, then you can announce it to subscribers.'}
+              </p>
+              {announceMsg && <p className={announceMsg.startsWith('Error') ? styles.error : styles.success}>{announceMsg}</p>}
+              <button onClick={announce} disabled={!isLive} className={styles.saveBtn}>Compose in Gmail</button>
+              <button onClick={copySubscriberEmails} className={styles.backBtn}>
+                Copy subscriber emails
+              </button>
+            </div>
+
+            <div className={styles.sideCard}>
               <h3>Details</h3>
               <div className={styles.field}>
                 <label>Date</label>
@@ -278,7 +326,7 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
                   value={editing.background_image || ''}
                   onChange={(e) => handleChange('background_image', e.target.value)}
                   placeholder="https://... or /images/file.jpg"
-                  style={{ marginTop: '0.5rem' }}
+                 
                 />
                 {editing.background_image && (
                   <img src={editing.background_image} alt="preview" className={styles.imgPreview} />
