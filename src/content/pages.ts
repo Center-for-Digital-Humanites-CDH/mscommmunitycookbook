@@ -2,8 +2,8 @@
 // The default is what the site shows until someone edits it, so nothing changes on deploy.
 
 // text: one line · lines: a few lines, each shown on its own line · rich: formatted paragraphs
-// image: a photo · position: which part of a photo shows when it's cropped
-export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position';
+// image: a photo · position: which part of a photo shows when it's cropped · number: a whole number
+export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position' | 'number';
 
 export interface PageField {
   key: string;
@@ -146,7 +146,155 @@ const home: PageDef = {
   ],
 };
 
-export const PAGES: PageDef[] = [home, cookbooks];
+const landscapes: PageDef = {
+  id: 'culinary-landscapes',
+  name: 'Culinary Landscapes',
+  path: '/culinary-landscapes',
+  groups: [
+    hero('Culinary Landscapes', '/images/landscapes-bg.jpeg', 'center 10%'),
+    {
+      title: 'Database Overview',
+      fields: [
+        { key: 'overview.heading', label: 'Heading', type: 'text', default: 'Database Overview' },
+        {
+          key: 'overview.text',
+          label: 'Text',
+          type: 'rich',
+          default:
+            `<p>The following analysis is drawn from a database of approximately 350 Mississippi community cookbooks that were published before 1970. This database includes cookbooks that I have collected (now part of The University of Southern Mississippi's cookbook collection), cookbooks preserved by libraries, and, in a few cases, cookbooks that I know about from newspaper coverage that were published but may no longer exist. Where verifiable information on the descriptive category (such as the organization that published the cookbook) was not available, I've excluded it from my statistical profile so the number of cookbooks used for each of these profiles differs.</p>`,
+        },
+        {
+          key: 'overview.note',
+          label: 'Highlighted note',
+          type: 'text',
+          default: 'The Mississippi Community Cookbook Project is an ongoing project. All the information provided is subject to revision.',
+        },
+      ],
+    },
+    {
+      title: 'Cookbooks by Decade (bar chart)',
+      fields: [
+        { key: 'decades.heading', label: 'Heading', type: 'text', default: 'Cookbooks by Decade' },
+        {
+          key: 'decades.text',
+          label: 'Text above the chart',
+          type: 'rich',
+          default:
+            `<p>The number of cookbooks published in Mississippi increased decade by decade. The first cookbook published in the state was the <em>Spinning-Wheel Cook-Book of Old Southern Recipes</em> published by the Spinning Wheel Club in Woodville, Mississippi, in 1899. (The cookbook was preserved when it was reprinted in 1939.) It was the only community cookbook published before 1900. However, the numbers grew steadily and in the 1960s over 148 cookbooks were published.</p>` +
+            `<p>The authors of these cookbooks often did not date their cookbooks, presumably hoping that these cookbooks would be viewed as timeless and could be sold for years. Even the rise of national publishers after World War II did not lead to the regular dating of cookbooks. Just over 160 of the cookbooks included in the following chart included a printed date.</p>` +
+            `<p>Previous studies have dated the cookbooks based on their appearance and, especially for nationally produced cookbooks, this technique is not without merit. However, given the importance of demonstrating change over time for this study, I researched undated cookbooks. Using contributors' names, advertisers, and newspaper references I have dated most of these cookbooks or, at least, have narrowed the possible date so that I can be fairly certain of the decade when it was produced. Nonetheless, the dates below are in some cases estimates and are subject to revision.</p>`,
+        },
+        { key: 'decades.chartTitle', label: 'Chart title', type: 'text', default: 'Cookbooks by Decade' },
+        { key: 'decades.first', label: 'First decade shown', type: 'number', default: '1890', hint: 'The bars are counted from the cookbooks list. E.g. 1890 starts the chart at the 1890s.' },
+        { key: 'decades.last', label: 'Last decade shown', type: 'number', default: '1960', hint: 'E.g. 1960 ends the chart at the 1960s.' },
+      ],
+    },
+    {
+      title: 'Publisher Types (circle chart)',
+      fields: [
+        { key: 'publishers.heading', label: 'Heading', type: 'text', default: 'Publisher Types: Local versus National' },
+        {
+          key: 'publishers.text',
+          label: 'Text above the chart',
+          type: 'rich',
+          default:
+            `<p>Anyone could create a community cookbook. The simplest, often presented as wedding presents, were handwritten cards bound with a ribbon or a metal ring. However, most were more substantial productions. Recipes were collected and organized, advertising was sold to pay for the cost of printing, and a hundred or more copies of the cookbook were printed and sold to raise funds for a charitable endeavor.</p>` +
+            `<p>These cookbooks often did not include publication information. If the cookbook was printed locally, the publisher may have viewed the production as a “print job” rather than a book. National publishers, who first emerged at the turn of the twentieth century and rose to prominence in the postwar era, were also initially reluctant to list publication information fearing that it would diminish their local appeal. The following numbers represent both my best guess as to the publisher and recorded publishers.</p>`,
+        },
+        { key: 'publishers.chartTitle', label: 'Chart title', type: 'text', default: 'Publisher Distribution' },
+        { key: 'publishers.localLabel', label: 'First group name', type: 'text', default: 'Local Publishers' },
+        { key: 'publishers.local', label: 'First group: number of cookbooks', type: 'number', default: '146', hint: 'Cookbooks printed by a local printer or self-published.' },
+        { key: 'publishers.nationalLabel', label: 'Second group name', type: 'text', default: 'National Publishers' },
+        { key: 'publishers.national', label: 'Second group: number of cookbooks', type: 'number', default: '130', hint: 'Cookbooks printed by a national publishing company.' },
+      ],
+    },
+    {
+      title: 'Organizations (bar chart)',
+      fields: [
+        { key: 'orgs.heading', label: 'Heading', type: 'text', default: 'Organizations That Published Cookbooks' },
+        {
+          key: 'orgs.text',
+          label: 'Text above the chart',
+          type: 'rich',
+          default:
+            `<p>Some cookbooks were created to forge tighter bonds with a club or community, but most were created to raise funds for charitable endeavors: remodeling a church rectory or repairing the church's roof, creating a cemetery, funding a school trip, raising money for textbooks or scholarships, or supporting local youth initiatives. The following chart classifies the groups that created these cookbooks as churches, civic organizations and clubs, extension service clubs, and professional organizations.</p>` +
+            `<p>In the following chart, civic groups, such as a parent-teacher association, and clubs, such as garden or literary club, have been grouped together since their fundraising efforts were similar. Church cookbooks, produced by women's auxiliaries and missionary societies, generally raised funds for church improvements. Mississippi State University's Extension Services were responsible for dozens of community cookbooks. Most were prepared with the help of a county demonstration agent. For a historical overview of Mississippi's home demonstration program, visit the <a href="https://mississippiencyclopedia.org/entries/home-demonstration/" target="_blank" rel="noopener noreferrer">Mississippi Encyclopedia</a>. Finally, professional organizations and businesses also occasionally sponsored cookbooks. The professional organizations raised funds for their own activities while businesses used the cookbook to promote their services. These cookbooks were much more common in the 1970s and the decades that followed.</p>`,
+        },
+        { key: 'orgs.chartTitle', label: 'Chart title', type: 'text', default: 'Organization Types' },
+        { key: 'orgs.civic', label: 'Name for "Civic/Club" cookbooks', type: 'text', default: 'Civic & Club Organizations' },
+        { key: 'orgs.church', label: 'Name for "Church" cookbooks', type: 'text', default: 'Church Organizations' },
+        { key: 'orgs.business', label: 'Name for "Business/Professional" cookbooks', type: 'text', default: 'Business & Professional' },
+        { key: 'orgs.extension', label: 'Name for "Extension" cookbooks', type: 'text', default: 'Extension Services' },
+      ],
+    },
+    {
+      title: 'Cookbooks by County',
+      fields: [
+        { key: 'counties.heading', label: 'Heading', type: 'text', default: 'Cookbooks by County' },
+        {
+          key: 'counties.text',
+          label: 'Text above the county charts',
+          type: 'rich',
+          default:
+            `<p>Mississippi spans 48,000 square miles divided into 82 counties. Many of these counties are rural and the county seat (or, in a few cases, seats) are generally the largest town. Yet communities small and large produced community cookbooks. As of this counting, all but nine of the 82 counties in Mississippi created at least one cookbook.</p>` +
+            `<p>Hinds County, home of the state capital, Jackson, created the largest number followed by Forrest, Washington, Jones, and Bolivar. The large numbers from Forrest and Jones reflect in part a statistical bias, since Hattiesburg, the researcher's home, is located in Forrest and Jones is the adjacent community. However, these numbers also reflect the cultural and educational importance of the cities that produced the largest number of cookbooks. Forrest is home to The University of Southern Mississippi which, for years, housed a Home Economics Department. Jones is home to Laurel, a community with considerable lumber and oil wealth and numerous cultural institutions. The other counties with the highest counts, Washington and Bolivar Counties, were the site of prominent Delta cities. Disproportionate as some of these counts may be, collectively the largest five contributors account for less than a third of the total number of cookbooks.</p>`,
+        },
+        { key: 'counties.highLabel', label: 'Name for the busiest counties', type: 'text', default: 'High Production' },
+        { key: 'counties.high', label: 'Counts as high production from', type: 'number', default: '10', hint: 'Number of cookbooks. E.g. 10 means 10 or more.' },
+        { key: 'counties.mediumLabel', label: 'Name for the middle group', type: 'text', default: 'Medium Production' },
+        { key: 'counties.medium', label: 'Counts as medium production from', type: 'number', default: '3', hint: 'E.g. 3 means 3 up to the high number. Anything below is low production.' },
+        { key: 'counties.lowLabel', label: 'Name for the quietest counties', type: 'text', default: 'Low Production' },
+        { key: 'counties.noneLabel', label: 'Name for counties with none', type: 'text', default: 'No Cookbooks' },
+        { key: 'counties.topTitle', label: 'Top counties chart title', type: 'text', default: 'Top 10 Counties' },
+        { key: 'counties.topNote', label: 'Note under the top counties chart', type: 'text', default: 'Future updates will include additional demographic information and maps.' },
+        { key: 'counties.gridHeading', label: 'County list heading', type: 'text', default: 'Complete County Inventory' },
+        {
+          key: 'counties.gridIntro',
+          label: 'County list intro',
+          type: 'lines',
+          default: 'Explore cookbook production across all 82 Mississippi counties. Use the search to find specific counties, or click the category buttons to filter by production level.',
+        },
+      ],
+    },
+    {
+      title: 'Maps',
+      fields: [
+        { key: 'maps.heading', label: 'Heading', type: 'text', default: 'Cookbook Map' },
+        {
+          key: 'maps.text',
+          label: 'Text above the maps',
+          type: 'rich',
+          default:
+            `<p>Cookbooks were published in every city and many small towns in Mississippi. This map includes information (similar to the previous list) on over 300 cookbooks published in Mississippi before 1970. In some cases, the date has been estimated. Clicking on a location pin provides information about the cookbooks published in that community.</p>`,
+        },
+        { key: 'maps.firstTitle', label: 'First map title', type: 'text', default: 'Cookbook Locations (Pre-1970)' },
+        {
+          key: 'maps.firstUrl',
+          label: 'First map link (ArcGIS)',
+          type: 'text',
+          default: 'https://southernmiss.maps.arcgis.com/apps/instant/sidebar/index.html?appid=7feb969fb94241feb29f40dc3c3291a0',
+          hint: 'Paste the "share" link of an ArcGIS map to swap it.',
+        },
+        { key: 'maps.secondTitle', label: 'Second map title', type: 'text', default: 'Regional Distribution of Pre-1970 Cookbooks' },
+        {
+          key: 'maps.secondText',
+          label: 'Text above the second map',
+          type: 'rich',
+          default:
+            `<p>Mississippi community cookbooks were published throughout the state. This map shows the percent of known cookbooks published before 1970 found in each of five regions. The distribution is remarkably even (despite the greater number of cookbooks published in Jackson, the state capital, and bias introduced by the researcher's residence in southern Mississippi. Statewide publications were excluded.)</p>`,
+        },
+        {
+          key: 'maps.secondUrl',
+          label: 'Second map link (ArcGIS)',
+          type: 'text',
+          default: 'https://southernmiss.maps.arcgis.com/apps/instant/basic/index.html?appid=42774c450dc0419097e5892c50f24d87',
+        },
+      ],
+    },
+  ],
+};
+
+export const PAGES: PageDef[] = [home, cookbooks, landscapes];
 
 export function getPageDef(id: string) {
   return PAGES.find((p) => p.id === id);
