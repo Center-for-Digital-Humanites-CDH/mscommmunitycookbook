@@ -1,7 +1,9 @@
 // Everything on a page that can be edited from the admin "Pages" tab.
 // The default is what the site shows until someone edits it, so nothing changes on deploy.
 
-export type FieldType = 'text' | 'rich' | 'image' | 'position';
+// text: one line · lines: a few lines, each shown on its own line · rich: formatted paragraphs
+// image: a photo · position: which part of a photo shows when it's cropped
+export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position';
 
 export interface PageField {
   key: string;
@@ -9,6 +11,8 @@ export interface PageField {
   type: FieldType;
   default: string;
   hint?: string;
+  // For position fields: the shape of the crop, e.g. '16 / 6'
+  aspect?: string;
 }
 
 export interface FieldGroup {
@@ -23,22 +27,13 @@ export interface PageDef {
   groups: FieldGroup[];
 }
 
-// Where to anchor a hero photo when it gets cropped to fit the banner
-export const POSITIONS = [
-  { value: 'center 10%', label: 'Show the top' },
-  { value: 'center 30%', label: 'Upper middle' },
-  { value: 'center', label: 'Middle' },
-  { value: 'center 70%', label: 'Lower middle' },
-  { value: 'center 90%', label: 'Show the bottom' },
-];
-
 function hero(title: string, image: string, position: string): FieldGroup {
   return {
     title: 'Banner at the top',
     fields: [
       { key: 'hero.title', label: 'Page title', type: 'text', default: title },
       { key: 'hero.image', label: 'Banner photo', type: 'image', default: image, hint: 'A wide photo works best. It is darkened slightly so the title stays readable.' },
-      { key: 'hero.position', label: 'Which part of the photo to show', type: 'position', default: position },
+      { key: 'hero.position', label: 'Which part of the photo to show', type: 'position', default: position, aspect: '16 / 6' },
     ],
   };
 }
@@ -96,7 +91,62 @@ const cookbooks: PageDef = {
   ],
 };
 
-export const PAGES: PageDef[] = [cookbooks];
+const HOME_TILES = [
+  { id: 'cookbooks', title: 'Cookbooks', subtitle: 'Community Cookbook Inventory', image: '/images/cookbooks-bg.jpeg', position: 'center 30%' },
+  { id: 'culinary-landscapes', title: 'Culinary Landscapes', subtitle: 'Charts and Maps', image: '/images/landscapes-bg.jpeg', position: 'center 5%' },
+  { id: 'experimental-kitchen', title: 'Experimental Kitchen', subtitle: 'AI Insights', image: '/images/kitchen-bg.jpeg', position: 'center 25%' },
+  { id: 'cookery', title: 'Cookery', subtitle: 'The Book Project', image: '/images/cookery-bg.jpeg', position: 'center 35%' },
+  { id: 'proof-pudding', title: 'Proof of the Pudding', subtitle: 'Notes on Sources', image: '/images/proof-bg.jpeg', position: 'center 10%' },
+  { id: 'culinary-tales', title: 'Culinary Tales', subtitle: 'The Blog', image: '/images/tales-bg.jpeg', position: 'center 10%' },
+  { id: 'tasted-tested', title: 'Tasted and Tested', subtitle: 'About this Site', image: '/images/tested-bg.jpeg', position: 'center 20%' },
+];
+
+// Each tile links to its page; the link itself isn't editable
+export const HOME_TILE_LINKS = HOME_TILES.map((t) => ({ id: t.id, href: `/${t.id}` }));
+
+const home: PageDef = {
+  id: 'home',
+  name: 'Home',
+  path: '/',
+  groups: [
+    {
+      title: 'Top of the page',
+      fields: [
+        { key: 'hero.title', label: 'Big title', type: 'lines', default: 'The Mississippi Community\nCookbook Project', hint: 'Press Enter to start a new line.' },
+        {
+          key: 'hero.subtitle',
+          label: 'Text under the title',
+          type: 'lines',
+          default: 'The Mississippi Community Cookbook Project catalogs and explores cookbooks published by charitable, civic, and church organizations in Mississippi before 1970 (and occasionally beyond).',
+        },
+      ],
+    },
+    ...HOME_TILES.map((t, i): FieldGroup => ({
+      title: `Tile ${i + 1}: links to ${t.title}`,
+      fields: [
+        { key: `tile.${t.id}.title`, label: 'Tile title', type: 'text', default: t.title },
+        { key: `tile.${t.id}.subtitle`, label: 'Small text under the title', type: 'text', default: t.subtitle },
+        { key: `tile.${t.id}.image`, label: 'Tile photo', type: 'image', default: t.image },
+        { key: `tile.${t.id}.position`, label: 'Which part of the photo to show', type: 'position', default: t.position, aspect: '3 / 2' },
+      ],
+    })),
+    {
+      title: 'Welcome message',
+      fields: [
+        {
+          key: 'welcome',
+          label: 'Welcome paragraph',
+          type: 'rich',
+          hint: 'Use the 🔗 button to link words to other pages, e.g. /cookbooks',
+          default:
+            '<p>Welcome to the Mississippi Community Cookbook Project. For information about Mississippi community cookbooks published before 1970, visit the <a href="/cookbooks">Cookbooks</a> and <a href="/culinary-landscapes">Culinary Landscapes</a> pages. For essays that mine cookbook data for curious insights, visit the <a href="/experimental-kitchen">Experimental Kitchen</a>. For additional essays on all things food and cookbook related, visit the blog at <a href="/culinary-tales">Culinary Tales</a>.</p>',
+        },
+      ],
+    },
+  ],
+};
+
+export const PAGES: PageDef[] = [home, cookbooks];
 
 export function getPageDef(id: string) {
   return PAGES.find((p) => p.id === id);
