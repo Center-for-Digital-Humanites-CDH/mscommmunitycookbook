@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import dynamic from 'next/dynamic';
-import { PAGES, POSITIONS, pageDefaults, type PageDef, type PageField } from '@/content/pages';
+import { PAGES, pageDefaults, type PageDef, type PageField } from '@/content/pages';
 import admin from './page.module.css';
 import styles from './PagesAdmin.module.css';
 
@@ -67,6 +67,15 @@ function ImageField({ value, onChange, supabase }: {
       {error && <p className={admin.error}>{error}</p>}
     </div>
   );
+}
+
+// Positions are stored as CSS like 'center 30%'; the slider edits the percentage
+function positionPercent(value: string) {
+  const m = value.match(/(\d+)%/);
+  if (m) return Number(m[1]);
+  if (value.includes('top')) return 0;
+  if (value.includes('bottom')) return 100;
+  return 50;
 }
 
 export default function PagesAdmin({ supabase, onDirtyChange }: {
@@ -167,20 +176,38 @@ export default function PagesAdmin({ supabase, onDirtyChange }: {
         return <RichEditor value={value} onChange={(html) => set(field.key, html)} placeholder="Write the text for this part of the page…" />;
       case 'image':
         return <ImageField value={value} onChange={(url) => set(field.key, url)} supabase={supabase} />;
-      case 'position':
+      case 'lines':
+        return <textarea rows={3} value={value} onChange={(e) => set(field.key, e.target.value)} />;
+      case 'position': {
+        // The photo and label this position belongs to, e.g. hero.position → hero.image / hero.title
+        const base = field.key.replace(/position$/, '');
+        const percent = positionPercent(value);
         return (
           <div className={styles.positionField}>
-            <select value={value} onChange={(e) => set(field.key, e.target.value)}>
-              {POSITIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
-            </select>
             <div
               className={styles.bannerPreview}
-              style={{ backgroundImage: `url(${values['hero.image']})`, backgroundPosition: value }}
+              style={{
+                aspectRatio: field.aspect || '16 / 6',
+                backgroundImage: `url(${values[`${base}image`]})`,
+                backgroundPosition: `center ${percent}%`,
+              }}
             >
-              <span>{values['hero.title']}</span>
+              <span>{(values[`${base}title`] || '').replace(/\n/g, ' ')}</span>
+            </div>
+            <div className={styles.sliderRow}>
+              <span>Top of photo</span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={percent}
+                onChange={(e) => set(field.key, `center ${e.target.value}%`)}
+              />
+              <span>Bottom of photo</span>
             </div>
           </div>
         );
+      }
       default:
         return <input value={value} onChange={(e) => set(field.key, e.target.value)} />;
     }

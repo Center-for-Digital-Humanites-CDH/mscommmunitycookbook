@@ -92,7 +92,7 @@
 }
 
 .field > input,
-.positionField select {
+.field > textarea {
   padding: 0.7rem 1rem;
   border: 1.5px solid var(--border);
   border-radius: 10px;
@@ -104,7 +104,7 @@
 }
 
 .field > input:focus,
-.positionField select:focus {
+.field > textarea:focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(200, 118, 61, 0.1);
 }
@@ -201,12 +201,27 @@
   gap: 0.6rem;
 }
 
-.positionField select { max-width: 260px; }
+.field > textarea { resize: vertical; line-height: 1.5; }
+
+.sliderRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 520px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sliderRow input {
+  flex: 1;
+  accent-color: var(--primary-color);
+}
 
 .bannerPreview {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 4;
+  max-width: 520px;
   border-radius: 10px;
   background-size: cover;
   display: flex;

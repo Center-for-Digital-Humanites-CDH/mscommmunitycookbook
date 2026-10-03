@@ -1,7 +1,9 @@
 // Everything on a page that can be edited from the admin "Pages" tab.
 // The default is what the site shows until someone edits it, so nothing changes on deploy.
 
-export type FieldType = 'text' | 'rich' | 'image' | 'position';
+// text: one line · lines: a few lines, each shown on its own line · rich: formatted paragraphs
+// image: a photo · position: which part of a photo shows when it's cropped
+export type FieldType = 'text' | 'lines' | 'rich' | 'image' | 'position';
 
 export interface PageField {
   key: string;
@@ -9,6 +11,8 @@ export interface PageField {
   type: FieldType;
   default: string;
   hint?: string;
+  // For position fields: the shape of the crop, e.g. '16 / 6'
+  aspect?: string;
 }
 
 export interface FieldGroup {
@@ -23,22 +27,13 @@ export interface PageDef {
   groups: FieldGroup[];
 }
 
-// Where to anchor a hero photo when it gets cropped to fit the banner
-export const POSITIONS = [
-  { value: 'center 10%', label: 'Show the top' },
-  { value: 'center 30%', label: 'Upper middle' },
-  { value: 'center', label: 'Middle' },
-  { value: 'center 70%', label: 'Lower middle' },
-  { value: 'center 90%', label: 'Show the bottom' },
-];
-
 function hero(title: string, image: string, position: string): FieldGroup {
   return {
     title: 'Banner at the top',
     fields: [
       { key: 'hero.title', label: 'Page title', type: 'text', default: title },
       { key: 'hero.image', label: 'Banner photo', type: 'image', default: image, hint: 'A wide photo works best. It is darkened slightly so the title stays readable.' },
-      { key: 'hero.position', label: 'Which part of the photo to show', type: 'position', default: position },
+      { key: 'hero.position', label: 'Which part of the photo to show', type: 'position', default: position, aspect: '16 / 6' },
     ],
   };
 }
