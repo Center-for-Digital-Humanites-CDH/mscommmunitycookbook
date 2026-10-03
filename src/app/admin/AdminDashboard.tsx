@@ -9,11 +9,10 @@ import styles from './page.module.css';
 
 const RichEditor = dynamic(() => import('./RichEditor'), { ssr: false });
 const CookbookAdmin = dynamic(() => import('./CookbookAdmin'), { ssr: false });
-const LandscapesAdmin = dynamic(() => import('./LandscapesAdmin'), { ssr: false });
 const SubscribersAdmin = dynamic(() => import('./SubscribersAdmin'), { ssr: false });
 const PagesAdmin = dynamic(() => import('./PagesAdmin'), { ssr: false });
 
-type Section = 'pages' | 'cookbooks' | 'landscapes' | 'posts' | 'subscribers';
+type Section = 'pages' | 'cookbooks' | 'posts' | 'subscribers';
 
 interface Post {
   id: string;
@@ -383,12 +382,6 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
           Cookbook Inventory
         </button>
         <button
-          className={`${styles.sectionTab} ${section === 'landscapes' ? styles.sectionTabActive : ''}`}
-          onClick={() => switchTo('landscapes')}
-        >
-          Culinary Landscapes
-        </button>
-        <button
           className={`${styles.sectionTab} ${section === 'posts' ? styles.sectionTabActive : ''}`}
           onClick={() => switchTo('posts')}
         >
@@ -404,8 +397,6 @@ export default function AdminDashboard({ supabase }: { supabase: SupabaseClient 
 
       {section === 'cookbooks' ? (
         <CookbookAdmin supabase={supabase} />
-      ) : section === 'landscapes' ? (
-        <LandscapesAdmin supabase={supabase} />
       ) : section === 'subscribers' ? (
         <SubscribersAdmin supabase={supabase} />
       ) : section === 'pages' ? (
