@@ -17,9 +17,10 @@ export interface RichEditorHandle {
 interface Props {
   value: string;
   onChange: (html: string) => void;
+  placeholder?: string;
 }
 
-const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange }, ref) => {
+const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange, placeholder }, ref) => {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -32,7 +33,7 @@ const RichEditor = forwardRef<RichEditorHandle, Props>(({ value, onChange }, ref
       }),
       Image.configure({ inline: false }),
       Placeholder.configure({
-        placeholder: 'Start writing your post here…',
+        placeholder: placeholder || 'Start writing your post here…',
       }),
     ],
     content: value || '',

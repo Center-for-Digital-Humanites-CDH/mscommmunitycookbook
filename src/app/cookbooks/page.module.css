@@ -17,6 +17,32 @@
   font-style: italic;
 }
 
+/* Text edited from the admin Pages tab */
+.rich :global(p) {
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: var(--text-dark);
+  font-weight: 400;
+  margin-bottom: 1.75rem;
+}
+
+.rich :global(em) {
+  color: var(--primary-color);
+  font-style: italic;
+}
+
+.rich :global(a) {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.rich :global(h2),
+.rich :global(h3) {
+  font-family: 'Playfair Display', serif;
+  color: var(--text-dark);
+  margin: 2rem 0 1rem;
+}
+
 /* Float blocks — image floats, text wraps around it */
 .floatLeft {
   overflow: hidden;
@@ -71,5 +97,6 @@
     display: block;
   }
 
-  .para { font-size: 1rem; }
+  .para,
+  .rich :global(p) { font-size: 1rem; }
 }

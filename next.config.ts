@@ -3,6 +3,12 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Lets the dev server work when opened at 127.0.0.1 as well as localhost
   allowedDevOrigins: ['127.0.0.1'],
+  // Photos uploaded from the admin are stored in Supabase Storage
+  images: {
+    remotePatterns: process.env.NEXT_PUBLIC_SUPABASE_URL
+      ? [new URL('/storage/v1/object/public/**', process.env.NEXT_PUBLIC_SUPABASE_URL)]
+      : [],
+  },
   async headers() {
     return [
       {
